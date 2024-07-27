@@ -1,0 +1,25 @@
+#+title: Org Autoexport
+#+author: Glenn Hutchings
+#+email: zondo42@gmail.com
+
+* Plan
+
+Write a more general org auto-exporter:
+
+- Add save hook to possibly export org file
+- Export automatically or only if exported suffix already exists
+- Ignore narrowing and region settings on export
+
+* Original code
+
+#+begin_src emacs-lisp
+  (defun my-export-markdown-on-save ()
+    "Export Org file to markdown if the markdown file already exists."
+
+    (let* ((pathname (buffer-file-name))
+           (markdown (replace-regexp-in-string "\\.org$" ".md" pathname)))
+      (when (and (s-suffix-p ".org" pathname) (f-exists-p markdown))
+        (org-gfm-export-to-markdown nil nil nil))))
+
+  (add-hook 'after-save-hook 'my-export-markdown-on-save)
+#+end_src
