@@ -2,6 +2,10 @@
 #+author: Glenn Hutchings
 #+email: zondo42@gmail.com
 
+* Intro
+
+TODO: write intro
+
 * Plan
 
 Write a more general org auto-exporter:
@@ -9,6 +13,26 @@ Write a more general org auto-exporter:
 - Add save hook to possibly export org file
 - Export automatically or only if exported suffix already exists
 - Ignore narrowing and region settings on export
+
+* Ideas
+
+- Use ~org-export-to-file~ for the export.  Can specify backend as a symbol:
+
+  #+begin_src emacs-lisp
+    (org-export-to-file 'md "README.md")
+    (org-export-to-file 'html "README.html")
+
+    ;; This determines whether the backend exists.
+    (org-export-get-backend 'gfm) ;; yes
+    (org-export-get-backend 'md) ;; yes
+    (org-export-get-backend 'nope) ;; no
+  #+end_src
+
+  Think this handles narrowing and region as well.
+
+- Need a way to map backend to suffix.  gfm and md map to ".md".
+
+- Check out [[https://github.com/jamcha-aa/auto-org-md/blob/master/auto-org-md.el][auto-org-md]] for more ideas.
 
 * Original code
 
