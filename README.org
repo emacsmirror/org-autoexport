@@ -23,7 +23,7 @@ Move development into this file, tangled to the output.
 
 Use ~org-export-to-file~ for the export.  Can specify backend as a symbol:
 
-#+begin_src elisp
+#+begin_src elisp :eval no
   (org-export-to-file 'md "README.md")
   (org-export-to-file 'html "README.html")
 
@@ -82,19 +82,15 @@ Default is to use the backend name:
 : Backend 'gfm' -> 'md'
 : Backend 'html' -> 'html'
 
-Then we need a way to convert the backend string to a symbol.
-
-#+begin_src elisp
-  (intern "gfm")
-#+end_src
-
-#+RESULTS:
-: gfm
-
 And then to check there's a backend defined with this symbol:
 
+#+begin_src elisp :results silent
+  (defun org-autoexport-get-backend (backend)
+    (org-export-get-backend (intern backend)))
+#+end_src
+
 #+begin_src elisp
-  (if (org-export-get-backend (intern "gfm"))
+  (if (org-autoexport-get-backend "gfm")
       (message "Backend found")
     (message "Backend not found"))
 #+end_src
