@@ -37,15 +37,20 @@ Think this handles narrowing and region as well.  Needs testing.
 
 Use the same configuration method as [[https://github.com/yilkalargaw/org-auto-tangle][org-auto-tangle]]:
 
-#+begin_src org
+#+begin_src org :eval no
   ,#+auto_export: gfm
   ,#+auto_export: html
 #+end_src
 
 Using ~org-collect-keywords~ to get the values here:
 
-#+begin_src elisp :results verbatim
+#+name: get-export-backends
+#+begin_src elisp :results verbatim :results silent
   (defun org-autoexport-get-export-backends ()
+    "Get the list of backends to auto-export.
+
+  This is the list of backend names declared by #+auto_export:
+  keywords in the org file."
     (delete "AUTO_EXPORT" (car (org-collect-keywords '("AUTO_EXPORT")))))
 #+end_src
 
@@ -60,13 +65,19 @@ Need a way to map the backend to suffix.  Have override alist.
 
 #+begin_src elisp :results silent
   (defconst org-autoexport-backend-suffix-map
-    '(("gfm" . "md")))
+    '(("gfm" . "md"))
+    "Mapping of backend name to file suffix, for special cases where they are different.")
 #+end_src
 
 Default is to use the backend name:
 
-#+begin_src elisp
+#+name: get-export-suffix
+#+begin_src elisp :results silent
   (defun org-autoexport-get-export-suffix (backend)
+    "Return the file suffix used to autoexport using BACKEND (a string).
+
+  Default is the name of the backend itself, unless a special case
+  is found in `org-autoexport-backend-suffix-map'."
     (alist-get backend org-autoexport-backend-suffix-map backend nil 'equal))
 #+end_src
 
@@ -84,8 +95,10 @@ Default is to use the backend name:
 
 And then to check there's a backend defined with this symbol:
 
+#+name: get-backend
 #+begin_src elisp :results silent
   (defun org-autoexport-get-backend (backend)
+    "Return the file suffix used to autoexport using BACKEND."
     (org-export-get-backend (intern backend)))
 #+end_src
 
