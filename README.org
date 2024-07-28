@@ -2,6 +2,9 @@
 #+author: Glenn Hutchings
 #+email: zondo42@gmail.com
 
+#+auto_export: gfm
+#+auto_export: html
+
 * Intro
 
 TODO: write intro
@@ -16,27 +19,92 @@ Write a more general org auto-exporter:
 
 * Ideas
 
-- Use ~org-export-to-file~ for the export.  Can specify backend as a symbol:
+Move development into this file, tangled to the output.
 
-  #+begin_src emacs-lisp
-    (org-export-to-file 'md "README.md")
-    (org-export-to-file 'html "README.html")
+Use ~org-export-to-file~ for the export.  Can specify backend as a symbol:
 
-    ;; This determines whether the backend exists.
-    (org-export-get-backend 'gfm) ;; yes
-    (org-export-get-backend 'md) ;; yes
-    (org-export-get-backend 'nope) ;; no
-  #+end_src
+#+begin_src elisp
+  (org-export-to-file 'md "README.md")
+  (org-export-to-file 'html "README.html")
 
-  Think this handles narrowing and region as well.
+  ;; This determines whether the backend exists.
+  (org-export-get-backend 'gfm) ;; yes
+  (org-export-get-backend 'md) ;; yes
+  (org-export-get-backend 'nope) ;; no
+#+end_src
 
-- Need a way to map backend to suffix.  gfm and md map to ".md".
+Think this handles narrowing and region as well.  Needs testing.
 
-- Check out [[https://github.com/jamcha-aa/auto-org-md/blob/master/auto-org-md.el][auto-org-md]] for more ideas.
+Use the same configuration method as [[https://github.com/yilkalargaw/org-auto-tangle][org-auto-tangle]]:
+
+#+begin_src org
+  ,#+auto_export: gfm
+  ,#+auto_export: html
+#+end_src
+
+Using ~org-collect-keywords~ to get the values here:
+
+#+begin_src elisp :results verbatim
+  (defun org-autoexport-get-export-backends ()
+    (delete "AUTO_EXPORT" (car (org-collect-keywords '("AUTO_EXPORT")))))
+#+end_src
+
+#+begin_src elisp :results verbatim
+  (org-autoexport-get-export-backends)
+#+end_src
+
+#+RESULTS:
+: ("gfm" "html")
+
+Need a way to map the backend to suffix.  Have override alist.
+
+#+begin_src elisp :results silent
+  (defconst org-autoexport-backend-suffix-map
+    '(("gfm" . "md")))
+#+end_src
+
+Default is to use the backend name:
+
+#+begin_src elisp
+  (defun org-autoexport-get-export-suffix (backend)
+    (alist-get backend org-autoexport-backend-suffix-map backend nil 'equal))
+#+end_src
+
+#+begin_src elisp
+  (let ((output "")
+        (suffix))
+    (dolist (backend (org-autoexport-get-export-backends) output)
+      (setq suffix (org-autoexport-get-export-suffix backend))
+      (setq output (concat output (format "Backend '%s' -> '%s'\n" backend suffix)))))
+#+end_src
+
+#+RESULTS:
+: Backend 'gfm' -> 'md'
+: Backend 'html' -> 'html'
+
+Then we need a way to convert the backend string to a symbol.
+
+#+begin_src elisp
+  (intern "gfm")
+#+end_src
+
+#+RESULTS:
+: gfm
+
+And then to check there's a backend defined with this symbol:
+
+#+begin_src elisp
+  (if (org-export-get-backend (intern "gfm"))
+      (message "Backend found")
+    (message "Backend not found"))
+#+end_src
+
+#+RESULTS:
+: Backend found
 
 * Original code
 
-#+begin_src emacs-lisp
+#+begin_src elisp
   (defun my-export-markdown-on-save ()
     "Export Org file to markdown if the markdown file already exists."
 
