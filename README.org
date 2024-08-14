@@ -2,8 +2,12 @@
 #+author: Glenn Hutchings
 #+email: zondo42@gmail.com
 
-#+property: header-args+ :eval no-export :exports both
+#+options: author:nil num:nil toc:t tags:nil
+#+startup: show3levels
 
+#+property: header-args+ :eval no-export :exports both :noweb tangle
+
+#+auto_tangle: t
 #+auto_export: gfm
 #+auto_export: html
 
@@ -17,7 +21,7 @@ don't support org mode as a format for their =README= files (looking at you,
 
 This being emacs, there are several ways to do it.  One is simply to add a
 local ~after-save-hook~ function (here's one that auto-exports to
-github-flavoured markdown on save):
+[[https://github.github.com/gfm/][github-flavoured markdown]] on save):
 
 #+begin_example
 # Local Variables:
@@ -35,8 +39,9 @@ something similar to what the [[https://github.com/yilkalargaw/org-auto-tangle][
 ,#+auto_export: html
 #+end_example
 
-That way, I can have the auto-export control as part of a common setup file
-declared by =#+setupfile:=, so I don't have to repeat myself.
+That way, I can have the auto-export control for a bunch of org files as
+part of a common setup file declared by =#+setupfile:=, so I don't have to
+repeat myself.
 
 * TODO Usage
 * Notes                                                            :noexport:
@@ -106,7 +111,7 @@ We can test that on the current file:
 #+end_src
 
 #+RESULTS:
-: ("gfm")
+: ("gfm" "html")
 
 To map the backend names to the right suffix, we'll use an alist which
 lists the special cases:
@@ -222,9 +227,85 @@ Toggling the minor mode:
   (org-autoexport-mode 'toggle)
 #+end_src
 
-* TODO Tangling                                                    :noexport:
+Testing the package import:
 
-Tangle the actual lisp code here.
+#+begin_src elisp :results silent :eval no
+  (load-file "org-autoexport.el")
+#+end_src
+
+* Package                                                          :noexport:
+
+Here's the main package file:
+
+#+begin_src elisp :eval no :tangle org-autoexport.el
+  ;; org-autoexport.el --- auto-export org file on save -*- lexical-binding: t; -*-
+  ;;
+  ;; Copyright (C) 2024 Glenn Hutchings
+  ;;
+  ;; Author: Glenn Hutchings <zondo42@gmail.com>
+  ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
+  ;; Created: July 27, 2024
+  ;; Modified: TODO
+  ;; Version: 0.1
+  ;; Keywords: tools
+  ;; Homepage: TODO
+  ;; Package-Requires: ((emacs "28.1") (org "9.6"))
+  ;;
+  ;; This file is not part of GNU Emacs.
+  ;;
+  ;; <<license>>
+
+  ;;; Commentary:
+
+  ;; It is common to want to export org files to one or more other formats
+  ;; every time you save your changes.  This package this allows you to do so
+  ;; using #+auto_export options in an org file.
+
+  ;;; Code:
+
+  <<suffix-map>>
+
+  <<get-backends>>
+
+  <<get-backend>>
+
+  <<get-suffix>>
+
+  <<do-export>>
+
+  ;;;###autoload
+  <<autoexport-mode>>
+
+  ;;; org-autoexport.el ends here
+#+end_src
+
+* License
+
+#+name: license
+#+begin_src text :eval no :tangle LICENSE
+  Copyright (c) 2024, Glenn Hutchings
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#+end_src
 
 * Epilogue                                                         :noexport:
 
