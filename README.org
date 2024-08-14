@@ -11,7 +11,7 @@
 #+auto_export: gfm
 #+auto_export: html
 
-* About this package
+* Introduction
 
 This emacs package allows you to maintain exported versions of your org
 files, by auto-exporting them every time you save.  My original reason for
@@ -43,30 +43,27 @@ That way, I can have the auto-export control for a bunch of org files as
 part of a common setup file declared by =#+setupfile:=, so I don't have to
 repeat myself.
 
-* TODO Usage
-* Notes                                                            :noexport:
+* Usage
 
-Write a more general org auto-exporter:
+Simply require the package in you emacs init and hook it into org-mode.
 
-- Add save hook to possibly export org file
-- Export automatically or only if exported suffix already exists
-- Ignore narrowing and region settings on export
-
-Move development into this file, tangled to the output.
-
-Use ~org-export-to-file~ for the export.  Can specify backend as a symbol:
-
-#+begin_src elisp :eval no
-  (org-export-to-file 'md "README.md")
-  (org-export-to-file 'html "README.html")
-
-  ;; This determines whether the backend exists.
-  (org-export-get-backend 'gfm) ;; yes
-  (org-export-get-backend 'md) ;; yes
-  (org-export-get-backend 'nope) ;; no
+#+begin_src elisp
+(require 'org-autoexport)
+(add-hook 'org-mode-hook 'org-autoexport-mode)
 #+end_src
 
-Think this handles narrowing and region as well.  Needs testing.
+or you can use =use-package=:
+
+#+begin_src elisp
+  (use-package org-autoexport
+    ;; this line is necessary only if you cloned the repo in your site-lisp directory
+    :load-path "site-lisp/org-autoexport/"
+    :defer t
+    :hook (org-mode . org-autoexport-mode))
+#+end_src
+
+If the minor mode is on, it will try to automatically export your org files
+if they contain any =#+auto_export:= options.
 
 * Implementation
 
@@ -138,14 +135,17 @@ And a function which uses this, defaulting to the backend name:
 
 Let's test it:
 
+#+name: test-backends
 #+begin_src elisp
-  (let (suffix (output ""))
-    (dolist (backend-name (org-autoexport-get-backends) output)
+  (let (suffix (result ""))
+    (dolist (backend-name (org-autoexport-get-backends) result)
       (setq suffix (org-autoexport-get-suffix backend-name))
-      (setq output (concat output (format "Backend '%s' -> '%s'\n" backend-name suffix)))))
+      (setq result (concat result (format "Backend '%s' -> '%s'\n" backend-name suffix)))))
 #+end_src
 
-#+RESULTS:
+The value of =result= is:
+
+#+RESULTS: test-backends
 : Backend 'gfm' -> 'md'
 : Backend 'html' -> 'html'
 
@@ -161,17 +161,20 @@ defaulting to =nil= if not found:
 
 Does it work?
 
+#+name: test-lookup
 #+begin_src elisp
-  (let ((output "") result)
-    (dolist (name '("gfm" "html" "md" "latex" "docx") output)
+  (let ((result "") result)
+    (dolist (name '("gfm" "html" "md" "latex" "docx") result)
       (cond ((org-autoexport-get-backend name)
              (setq result "found"))
             (t
              (setq result "not found")))
-      (setq output (concat output (format "Backend '%s' %s\n" name result)))))
+      (setq result (concat result (format "Backend '%s' %s\n" name result)))))
 #+end_src
 
-#+RESULTS:
+The value of =result= is:
+
+#+RESULTS: test-lookup
 : Backend 'gfm' found
 : Backend 'html' found
 : Backend 'md' found
@@ -183,6 +186,11 @@ Here's the function which puts it all together, and does the exporting:
 #+name: do-export
 #+begin_src elisp :results silent
   (defun org-autoexport-do-export ()
+    "Export the current org file to one or more backends if required.
+
+  The backends are listed in the #+auto_export: directives.  If a backend
+  is unknown, a warning is written to the *Warnings* buffer."
+
     (let (backend suffix filename)
       (unless (buffer-file-name)
         (error "Buffer has no associated filename"))
@@ -212,6 +220,36 @@ exporting.  The idea here is to have this turned on in ~org-mode-hook~.
 
 And that's it.  If you're looking at the org mode source of this file,
 you'll see that the source code is tangled directly from it.
+
+* License
+
+This package is licensed under the the 2-Clause BSD License:
+
+#+name: license
+#+begin_src text :eval no :tangle LICENSE
+  Copyright (c) 2024, Glenn Hutchings
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#+end_src
 
 * Testing                                                          :noexport:
 
@@ -244,11 +282,9 @@ Here's the main package file:
   ;;
   ;; Author: Glenn Hutchings <zondo42@gmail.com>
   ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
-  ;; Created: July 27, 2024
-  ;; Modified: TODO
+  ;; URL: https://git.sr.ht/~zondo/org-autoexport
   ;; Version: 0.1
   ;; Keywords: tools
-  ;; Homepage: TODO
   ;; Package-Requires: ((emacs "28.1") (org "9.6"))
   ;;
   ;; This file is not part of GNU Emacs.
@@ -259,9 +295,12 @@ Here's the main package file:
 
   ;; It is common to want to export org files to one or more other formats
   ;; every time you save your changes.  This package this allows you to do so
-  ;; using #+auto_export options in an org file.
+  ;; using #+auto_export: options in the org file.
 
   ;;; Code:
+
+  (require 'org)
+  (require 'ox)
 
   <<suffix-map>>
 
@@ -279,33 +318,12 @@ Here's the main package file:
   ;;; org-autoexport.el ends here
 #+end_src
 
-* License
+* Todo list                                                        :noexport:
 
-#+name: license
-#+begin_src text :eval no :tangle LICENSE
-  Copyright (c) 2024, Glenn Hutchings
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
-
-  1. Redistributions of source code must retain the above copyright notice, this
-     list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright notice,
-     this list of conditions and the following disclaimer in the documentation
-     and/or other materials provided with the distribution.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#+end_src
+- Add a customization group
+- Consider using async for export
+- Auto-tangle the correct date and year
+- Prepare for [[https://github.com/mz-pdm/melpa/blob/master/CONTRIBUTING.org][MELPA]]
 
 * Epilogue                                                         :noexport:
 
