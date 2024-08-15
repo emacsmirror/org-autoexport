@@ -5,7 +5,7 @@
 #+options: author:nil num:nil toc:t tags:nil
 #+startup: show3levels
 
-#+property: header-args+ :eval no-export :exports both :noweb tangle
+#+property: header-args+ :eval no-export :exports both :noweb yes
 
 #+auto_tangle: t
 #+auto_export: gfm
@@ -47,14 +47,14 @@ repeat myself.
 
 Simply require the package in you emacs init and hook it into org-mode.
 
-#+begin_src elisp
-(require 'org-autoexport)
-(add-hook 'org-mode-hook 'org-autoexport-mode)
+#+begin_src elisp :results silent
+  (require 'org-autoexport)
+  (add-hook 'org-mode-hook 'org-autoexport-mode)
 #+end_src
 
 or you can use =use-package=:
 
-#+begin_src elisp
+#+begin_src elisp :results silent
   (use-package org-autoexport
     ;; this line is necessary only if you cloned the repo in your site-lisp directory
     :load-path "site-lisp/org-autoexport/"
@@ -103,11 +103,12 @@ Here's a function to get the backend names, using ~org-collect-keywords~:
 
 We can test that on the current file:
 
+#+name: test-backends
 #+begin_src elisp :results verbatim
   (org-autoexport-get-backends)
 #+end_src
 
-#+RESULTS:
+#+RESULTS: test-backends
 : ("gfm" "html")
 
 To map the backend names to the right suffix, we'll use an alist which
@@ -118,7 +119,10 @@ lists the special cases:
   (defconst org-autoexport-backend-suffix-map
     '(("gfm" . "md")
       ("latex" . "tex"))
-    "Mapping of backend name to file suffix, for special cases where they are different.")
+    "Mapping of export backend name to file suffix.
+
+  Most of the time, the name and suffix are the same.  This
+  variable lists the special cases where they are different.")
 #+end_src
 
 And a function which uses this, defaulting to the backend name:
@@ -135,7 +139,7 @@ And a function which uses this, defaulting to the backend name:
 
 Let's test it:
 
-#+name: test-backends
+#+name: test-suffixes
 #+begin_src elisp
   (let (suffix (result ""))
     (dolist (backend-name (org-autoexport-get-backends) result)
@@ -145,7 +149,7 @@ Let's test it:
 
 The value of =result= is:
 
-#+RESULTS: test-backends
+#+RESULTS: test-suffixes
 : Backend 'gfm' -> 'md'
 : Backend 'html' -> 'html'
 
@@ -175,11 +179,7 @@ Does it work?
 The value of =result= is:
 
 #+RESULTS: test-lookup
-: Backend 'gfm' found
-: Backend 'html' found
-: Backend 'md' found
-: Backend 'latex' found
-: Backend 'docx' not found
+: not foundBackend 'docx' not found
 
 Here's the function which puts it all together, and does the exporting:
 
@@ -272,30 +272,59 @@ Testing the package import:
 #+end_src
 
 * Package                                                          :noexport:
+  :PROPERTIES:
+  :header-args+: :eval no
+  :END:
 
-Here's the main package file:
+The package name:
 
-#+begin_src elisp :eval no :tangle org-autoexport.el
-  ;; org-autoexport.el --- auto-export org file on save -*- lexical-binding: t; -*-
-  ;;
-  ;; Copyright (C) 2024 Glenn Hutchings
-  ;;
-  ;; Author: Glenn Hutchings <zondo42@gmail.com>
-  ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
-  ;; URL: https://git.sr.ht/~zondo/org-autoexport
-  ;; Version: 0.1
-  ;; Keywords: tools
-  ;; Package-Requires: ((emacs "28.1") (org "9.6"))
-  ;;
-  ;; This file is not part of GNU Emacs.
-  ;;
+#+name: pkg
+#+begin_src text
+  org-autoexport
+#+end_src
+
+The package summary:
+
+#+name: summary
+#+begin_src text
+  Auto-export org file on save
+#+end_src
+
+The package header:
+
+#+name: header
+#+begin_src text
+  Author: Glenn Hutchings <zondo42@gmail.com>
+  Maintainer: Glenn Hutchings <zondo42@gmail.com>
+  URL: https://git.sr.ht/~zondo/<<pkg>>
+  Version: 0.1
+  Keywords: tools
+  Package-Requires: ((emacs "28.1") (org "9.6"))
+
+  This file is not part of GNU Emacs.
+#+end_src
+
+The package description:
+
+#+name: description
+#+begin_src text
+  It is common to want to export org files to one or more other formats
+  every time you save your changes.  This package this allows you to do so
+  using #+auto_export: options in the org file.
+#+end_src
+
+The tangled package file:
+
+#+begin_src elisp :tangle org-autoexport.el
+  ;;; <<pkg>>.el -- <<summary>> -*- lexical-binding: t; -*-
+
+  ;; <<header>>
+
   ;; <<license>>
 
   ;;; Commentary:
 
-  ;; It is common to want to export org files to one or more other formats
-  ;; every time you save your changes.  This package this allows you to do so
-  ;; using #+auto_export: options in the org file.
+  ;; <<description>>
 
   ;;; Code:
 
@@ -315,7 +344,9 @@ Here's the main package file:
   ;;;###autoload
   <<autoexport-mode>>
 
-  ;;; org-autoexport.el ends here
+  (provide '<<pkg>>)
+
+  ;;; <<pkg>>.el ends here
 #+end_src
 
 * Todo list                                                        :noexport:
