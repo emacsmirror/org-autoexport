@@ -351,10 +351,12 @@ The tangled package file:
 
 * Todo list                                                        :noexport:
 
-- Add a customization group
-- Consider using async for export
-- Auto-tangle the correct date and year
-- Prepare for [[https://github.com/mz-pdm/melpa/blob/master/CONTRIBUTING.org][MELPA]]
+- TODO: Add a customization group
+- TODO: Consider using async for export
+- TODO: Auto-tangle the correct date and year
+- TODO: Prepare for publishing
+
+Publish on [[https://github.com/mz-pdm/melpa/blob/master/CONTRIBUTING.org][MELPA]].
 
 * Epilogue                                                         :noexport:
 
