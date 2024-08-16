@@ -176,19 +176,23 @@ Does it work?
 
 #+name: test-lookup
 #+begin_src elisp
-  (let ((result "") result)
+  (let ((result "") found)
     (dolist (name '("gfm" "html" "md" "latex" "docx") result)
       (cond ((org-autoexport-get-backend name)
-             (setq result "found"))
+             (setq found "found"))
             (t
-             (setq result "not found")))
-      (setq result (concat result (format "Backend '%s' %s\n" name result)))))
+             (setq found "not found")))
+      (setq result (concat result (format "Backend '%s' %s\n" name found)))))
 #+end_src
 
 The value of =result= is:
 
 #+RESULTS: test-lookup
-: not foundBackend 'docx' not found
+: Backend 'gfm' found
+: Backend 'html' found
+: Backend 'md' found
+: Backend 'latex' found
+: Backend 'docx' not found
 
 Here's the function which puts it all together, and does the exporting:
 
