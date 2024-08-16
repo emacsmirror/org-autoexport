@@ -2,12 +2,11 @@
 #+author: Glenn Hutchings
 #+email: zondo42@gmail.com
 
-#+options: author:nil num:nil toc:t tags:nil
+#+options: author:nil num:nil toc:nil tags:nil
 #+startup: show3levels
 
 #+property: header-args+ :eval no-export :exports both :noweb yes
 
-#+auto_tangle: t
 #+auto_export: gfm
 #+auto_export: html
 
@@ -48,14 +47,16 @@ repeat myself.
   :header-args+: :eval no
   :END:
 
-Simply require the package in you emacs init and hook it into org-mode.
+The package defines a minor mode called =org-autoexport-mode=, which (if
+enabled) performs the export after saving the file.  Simply require the
+package in you emacs init and hook it into org-mode.
 
 #+begin_src elisp :results silent
   (require 'org-autoexport)
   (add-hook 'org-mode-hook 'org-autoexport-mode)
 #+end_src
 
-or you can use =use-package=:
+Alternatively, you can use =use-package=:
 
 #+begin_src elisp :results silent
   (use-package org-autoexport
@@ -65,14 +66,66 @@ or you can use =use-package=:
     :hook (org-mode . org-autoexport-mode))
 #+end_src
 
+You can install directly from the source repo if you have [[https://github.com/slotThe/vc-use-package][vc-use-package]]
+installed (this package isn't yet available from MELPA):
+
+#+begin_src elisp
+  (use-package org-autoexport
+    :defer t
+    :vc (:fetcher sourcehut :repo zondo/org-autoexport)
+    :hook (org-mode . org-autoexport-mode))
+#+end_src
+
 If the minor mode is on, it will try to automatically export your org files
 if they contain any =#+auto_export:= options.
 
-Auto-export will fail if it doesn't recognize the requested export backend,
-and you'll get a warning to that effect.  In that case you will need to
-install and load 
+Auto-export will fail if it the requested export backend can't be found,
+and you'll get a popup warning buffer to that effect.  In that case you
+will need to install and load the export backend first (for example, to get
+the =gfm= export mentioned above, you will need to load the [[https://github.com/larstvei/ox-gfm][ox-gfm]] package).
 
-* Implementation
+* Contributing
+
+You can find the source repo on [[https://git.sr.ht/~zondo/org-autoexport][sourcehut]].  Report any problems [[https://todo.sr.ht/~zondo/org-autoexport][here]].
+
+* License
+
+This package is licensed under the the 2-Clause BSD License:
+
+#+name: license
+#+begin_src text :eval no :tangle COPYING
+  Copyright (c) 2024, Glenn Hutchings
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#+end_src
+
+* Development                                                      :noexport:
+  :PROPERTIES:
+  :header-args+: :eval no :results silent
+  :END:
+
+Development of this package is managed by [[https://emacs-eldev.github.io/eldev][Eldev]], and a Makefile.
+
+** Implementation
 
 Each of the =#+auto_export:= statements declares an org export /backend/ that
 does the export.  With that in mind, here's an outline of the export
@@ -85,7 +138,7 @@ algorithm:
 
    - Find the suffix of the file to export to.  For most backends, that's
      just the name of the backend.  But there are special cases: for
-     [[https://github.github.com/gfm/][github-flavoured markdown]] the backend is ~'gfm~ but the suffix is =md=.
+     github-flavoured markdown the backend is ~'gfm~ but the suffix is =md=.
 
    - Create the export filename by concatenating the current file's prefix
      with the export suffix.
@@ -231,45 +284,7 @@ exporting.  The idea here is to have this turned on in ~org-mode-hook~.
       (remove-hook 'after-save-hook #'org-autoexport-do-export 'local)))
 #+end_src
 
-And that's it.  If you're looking at the org mode source of this file,
-you'll see that the source code is tangled directly from it.
-
-* License
-
-This package is licensed under the the 2-Clause BSD License:
-
-#+name: license
-#+begin_src text :eval no :tangle COPYING
-  Copyright (c) 2024, Glenn Hutchings
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
-
-  1. Redistributions of source code must retain the above copyright notice, this
-     list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright notice,
-     this list of conditions and the following disclaimer in the documentation
-     and/or other materials provided with the distribution.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#+end_src
-
-* Development                                                      :noexport:
-  :PROPERTIES:
-  :header-args+: :eval no :results silent
-  :END:
-
-Development of this package is managed by [[https://emacs-eldev.github.io/eldev][Eldev]], and a Makefile.
+And that's it.
 
 ** Testing
 
@@ -388,10 +403,9 @@ The tangled package file:
 
 ** Todo list
 
-- TODO: Finish setting up Eldev
 - TODO: Add a customization group
 - TODO: Choose a versioning system (calver?)
-- TODO: Choose adding package tests
+- TODO: Add more package tests
 - TODO: Consider using async for export
 - TODO: Auto-tangle the correct date and year
 - TODO: Prepare for publishing

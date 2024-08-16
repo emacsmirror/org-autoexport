@@ -1,12 +1,3 @@
-- [Introduction](#orga8fd57f)
-- [Usage](#orgb50eed5)
-- [Implementation](#org23acfba)
-- [License](#org5d0ea09)
-
-
-
-<a id="orga8fd57f"></a>
-
 # Introduction
 
 This emacs package allows you to synchronize exported versions of your org files, by auto-exporting them every time you save. My original reason for this was because I prefer to write docs in org mode, but some git repo sites don't support org mode as a format for their `README` files (looking at you, [sourcehut](https://sr.ht/)). But I don't want to have to remember to export after each change.
@@ -28,18 +19,16 @@ Which works, but I find it ugly. It means copy-pasting hard-to-remember code at 
 That way, I can have the auto-export control for a bunch of org files as part of a common setup file declared by `#+setupfile:`, so I don't have to repeat myself.
 
 
-<a id="orgb50eed5"></a>
-
 # Usage
 
-Simply require the package in you emacs init and hook it into org-mode.
+The package defines a minor mode called `org-autoexport-mode`, which (if enabled) performs the export after saving the file. Simply require the package in you emacs init and hook it into org-mode.
 
 ```elisp
 (require 'org-autoexport)
 (add-hook 'org-mode-hook 'org-autoexport-mode)
 ```
 
-or you can use `use-package`:
+Alternatively, you can use `use-package`:
 
 ```elisp
 (use-package org-autoexport
@@ -49,154 +38,24 @@ or you can use `use-package`:
   :hook (org-mode . org-autoexport-mode))
 ```
 
+You can install directly from the source repo if you have [vc-use-package](https://github.com/slotThe/vc-use-package) installed (this package isn't yet available from MELPA):
+
+```elisp
+(use-package org-autoexport
+  :defer t
+  :vc (:fetcher sourcehut :repo zondo/org-autoexport)
+  :hook (org-mode . org-autoexport-mode))
+```
+
 If the minor mode is on, it will try to automatically export your org files if they contain any `#+auto_export:` options.
 
-Auto-export will fail if it doesn't recognize the requested export backend, and you'll get a warning to that effect. In that case you will need to install and load
+Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
 
 
-<a id="org23acfba"></a>
+# Contributing
 
-# Implementation
+You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems [here](https://todo.sr.ht/~zondo/org-autoexport).
 
-Each of the `#+auto_export:` statements declares an org export *backend* that does the export. With that in mind, here's an outline of the export algorithm:
-
-1.  Get the export backend names from the `#+auto_export:` statements in the current file.
-
-2.  For each backend, do this:
-    -   Find the suffix of the file to export to. For most backends, that's just the name of the backend. But there are special cases: for [github-flavoured markdown](https://github.github.com/gfm/) the backend is `'gfm` but the suffix is `md`.
-    
-    -   Create the export filename by concatenating the current file's prefix with the export suffix.
-    
-    -   Get the export backend object from its string representation.
-    
-    -   If the backend is found, do the export. Otherwise, warn the user.
-
-3.  Er&#x2026; that's it.
-
-Here's a function to get the backend names, using `org-collect-keywords`:
-
-```elisp
-(defun org-autoexport-get-backends ()
-  "Get a list of backend names to auto-export from the current file.
-
-This is the list of backend names declared by #+auto_export:
-keywords in the org file."
-  (delete "AUTO_EXPORT" (car (org-collect-keywords '("AUTO_EXPORT")))))
-```
-
-We can test that on the current file:
-
-```elisp
-(org-autoexport-get-backends)
-```
-
-Here's the result:
-
-    ("gfm" "html")
-
-To map the backend names to the right suffix, we'll use an alist which lists the special cases:
-
-```elisp
-(defconst org-autoexport-backend-suffix-map
-  '(("gfm" . "md")
-    ("latex" . "tex"))
-  "Mapping of export backend name to file suffix.
-
-Most of the time, the name and suffix are the same.  This
-variable lists the special cases where they are different.")
-```
-
-And a function which uses this, defaulting to the backend name:
-
-```elisp
-(defun org-autoexport-get-suffix (backend-name)
-  "Return the file suffix used to autoexport using BACKEND-NAME.
-
-Default is the name of the backend itself, unless a special case
-is found in `org-autoexport-backend-suffix-map'."
-  (alist-get backend-name org-autoexport-backend-suffix-map backend-name nil 'equal))
-```
-
-Let's test it:
-
-```elisp
-(let (suffix (result ""))
-  (dolist (backend-name (org-autoexport-get-backends) result)
-    (setq suffix (org-autoexport-get-suffix backend-name))
-    (setq result (concat result (format "Backend '%s' -> '%s'\n" backend-name suffix)))))
-```
-
-The value of `result` is:
-
-    Backend 'gfm' -> 'md'
-    Backend 'html' -> 'html'
-
-Next we need a function to look up the backend object given its name, defaulting to `nil` if not found:
-
-```elisp
-(defun org-autoexport-get-backend (backend-name)
-  "Return the export backend used to autoexport using BACKEND-NAME."
-  (org-export-get-backend (intern backend-name)))
-```
-
-Does it work?
-
-```elisp
-(let ((result "") found)
-  (dolist (name '("gfm" "html" "md" "latex" "docx") result)
-    (cond ((org-autoexport-get-backend name)
-           (setq found "found"))
-          (t
-           (setq found "not found")))
-    (setq result (concat result (format "Backend '%s' %s\n" name found)))))
-```
-
-The value of `result` is:
-
-    Backend 'gfm' found
-    Backend 'html' found
-    Backend 'md' found
-    Backend 'latex' found
-    Backend 'docx' not found
-
-Here's the function which puts it all together, and does the exporting:
-
-```elisp
-(defun org-autoexport-do-export ()
-  "Export the current org file to one or more backends if required.
-
-The backends are listed in the #+auto_export: directives.  If a backend
-is unknown, a warning is written to the *Warnings* buffer."
-
-  (let (backend suffix filename)
-    (unless (buffer-file-name)
-      (error "Buffer has no associated filename"))
-    (dolist (backend-name (org-autoexport-get-backends))
-      (setq suffix (org-autoexport-get-suffix backend-name))
-      (setq backend (org-autoexport-get-backend backend-name))
-      (setq filename (concat (file-name-base (buffer-file-name)) "." suffix))
-      (cond (backend
-             (org-export-to-file backend filename))
-            (t
-             (warn "No export backend for '%s'" backend-name))))))
-```
-
-Next we need a minor autoexport mode, which (if enabled) does the exporting. The idea here is to have this turned on in `org-mode-hook`.
-
-```elisp
-(define-minor-mode org-autoexport-mode
-  "Automatically export Org mode files with #+auto_export options."
-  :lighter " Exp"
-
-  (if org-autoexport-mode
-      (add-hook 'after-save-hook #'org-autoexport-do-export nil 'local)
-    (remove-hook 'after-save-hook #'org-autoexport-do-export 'local)))
-```
-
-And that's it. If you're looking at the org mode source of this file, you'll see that the source code is tangled directly from it.
-
-
-<a id="org5d0ea09"></a>
 
 # License
 
