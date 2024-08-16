@@ -316,7 +316,7 @@ The package description:
 The tangled package file:
 
 #+begin_src elisp :tangle org-autoexport.el
-  ;;; <<pkg>>.el -- <<summary>> -*- lexical-binding: t; -*-
+  ;;; <<pkg>>.el --- <<summary>> -*- lexical-binding: t; -*-
 
   ;; <<header>>
 
@@ -352,8 +352,10 @@ The tangled package file:
 * Todo list                                                        :noexport:
 
 - TODO: Add a customization group
+- TODO: Choose a versioning system (calver?)
 - TODO: Consider using async for export
 - TODO: Auto-tangle the correct date and year
+- TODO: Add Makefile for checkdoc/package-lint
 - TODO: Prepare for publishing
 
 Publish on [[https://github.com/mz-pdm/melpa/blob/master/CONTRIBUTING.org][MELPA]].
