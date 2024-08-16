@@ -13,11 +13,12 @@
 
 * Introduction
 
-This emacs package allows you to maintain exported versions of your org
+This emacs package allows you to synchronize exported versions of your org
 files, by auto-exporting them every time you save.  My original reason for
-this was because I like writing docs in org mode, but some git repo sites
-don't support org mode as a format for their =README= files (looking at you,
-[[https://sr.ht/][sourcehut]]).
+this was because I prefer to write docs in org mode, but some git repo
+sites don't support org mode as a format for their =README= files (looking at
+you, [[https://sr.ht/][sourcehut]]).  But I don't want to have to remember to export after each
+change.
 
 This being emacs, there are several ways to do it.  One is simply to add a
 local ~after-save-hook~ function (here's one that auto-exports to
@@ -36,7 +37,6 @@ something similar to what the [[https://github.com/yilkalargaw/org-auto-tangle][
 
 #+begin_example
 ,#+auto_export: gfm
-,#+auto_export: html
 #+end_example
 
 That way, I can have the auto-export control for a bunch of org files as
@@ -44,6 +44,9 @@ part of a common setup file declared by =#+setupfile:=, so I don't have to
 repeat myself.
 
 * Usage
+  :PROPERTIES:
+  :header-args+: :eval no
+  :END:
 
 Simply require the package in you emacs init and hook it into org-mode.
 
@@ -64,6 +67,10 @@ or you can use =use-package=:
 
 If the minor mode is on, it will try to automatically export your org files
 if they contain any =#+auto_export:= options.
+
+Auto-export will fail if it doesn't recognize the requested export backend,
+and you'll get a warning to that effect.  In that case you will need to
+install and load 
 
 * Implementation
 
@@ -107,6 +114,8 @@ We can test that on the current file:
 #+begin_src elisp :results verbatim
   (org-autoexport-get-backends)
 #+end_src
+
+Here's the result:
 
 #+RESULTS: test-backends
 : ("gfm" "html")
@@ -226,7 +235,7 @@ you'll see that the source code is tangled directly from it.
 This package is licensed under the the 2-Clause BSD License:
 
 #+name: license
-#+begin_src text :eval no :tangle LICENSE
+#+begin_src text :eval no :tangle COPYING
   Copyright (c) 2024, Glenn Hutchings
 
   Redistribution and use in source and binary forms, with or without
@@ -251,30 +260,54 @@ This package is licensed under the the 2-Clause BSD License:
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #+end_src
 
-* Testing                                                          :noexport:
+* Development                                                      :noexport:
+  :PROPERTIES:
+  :header-args+: :eval no :results silent
+  :END:
+
+Development of this package is managed by [[https://emacs-eldev.github.io/eldev][Eldev]], and a Makefile.
+
+** Testing
 
 Doing the export directly:
 
-#+begin_src elisp :results silent :eval no
+#+begin_src elisp
   (org-autoexport-do-export)
 #+end_src
 
 Toggling the minor mode:
 
-#+begin_src elisp :results silent :eval no
+#+begin_src elisp
   (org-autoexport-mode 'toggle)
 #+end_src
 
-Testing the package import:
+Some unit tests:
 
-#+begin_src elisp :results silent :eval no
-  (load-file "org-autoexport.el")
+#+begin_src elisp :tangle org-autoexport-test.el
+  ;;; -*- lexical-binding: t; -*-
+
+  (require 'buttercup)
+  (require 'org-autoexport)
+
+  (describe "org-autoexport"
+    (before-all
+     (find-file "README.org"))
+
+    (it "finds the backend names in README.org"
+        (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
+
+    (it "finds the correct suffix"
+        (expect (org-autoexport-get-suffix "html") :to-equal "html")
+        (expect (org-autoexport-get-suffix "gfm") :to-equal "md")
+        (expect (org-autoexport-get-suffix "latex") :to-equal "tex"))
+
+    (it "finds the backend from its name"
+        (expect (org-autoexport-get-backend "html") :not :to-be nil)
+        (expect (org-autoexport-get-backend "latex") :not :to-be nil)
+        (expect (org-autoexport-get-backend "nosuch") :to-be nil)))
 #+end_src
 
-* Package                                                          :noexport:
-  :PROPERTIES:
-  :header-args+: :eval no
-  :END:
+** Package
 
 The package name:
 
@@ -349,16 +382,18 @@ The tangled package file:
   ;;; <<pkg>>.el ends here
 #+end_src
 
-* Todo list                                                        :noexport:
+** Todo list
 
+- TODO: Finish setting up Eldev
 - TODO: Add a customization group
 - TODO: Choose a versioning system (calver?)
+- TODO: Choose adding package tests
 - TODO: Consider using async for export
 - TODO: Auto-tangle the correct date and year
-- TODO: Add Makefile for checkdoc/package-lint
 - TODO: Prepare for publishing
 
-Publish on [[https://github.com/mz-pdm/melpa/blob/master/CONTRIBUTING.org][MELPA]].
+  - Publish on [[https://github.com/mz-pdm/melpa/blob/master/CONTRIBUTING.org][MELPA]]
+  - Use [[https://emacs-eldev.github.io/eldev/][Eldev]] for managing
 
 * Epilogue                                                         :noexport:
 
