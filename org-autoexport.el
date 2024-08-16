@@ -4,7 +4,7 @@
 ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
 ;; URL: https://git.sr.ht/~zondo/org-autoexport
 ;; Version: 0.1
-;; Keywords: tools
+;; Keywords: org, wp
 ;; Package-Requires: ((emacs "28.1") (org "9.6"))
 ;; 
 ;; This file is not part of GNU Emacs.
@@ -83,14 +83,15 @@ is unknown, a warning is written to the *Warnings* buffer."
       (setq backend (org-autoexport-get-backend backend-name))
       (setq filename (concat (file-name-base (buffer-file-name)) "." suffix))
       (cond (backend
-             (org-export-to-file backend filename))
+             (message "Exporting to '%s' using %s backend" filename backend-name)
+             (org-export-to-file backend filename nil))
             (t
              (warn "No export backend for '%s'" backend-name))))))
 
 ;;;###autoload
 (define-minor-mode org-autoexport-mode
   "Automatically export Org mode files with #+auto_export options."
-  :lighter " Exp"
+  :lighter " AutoExp"
 
   (if org-autoexport-mode
       (add-hook 'after-save-hook #'org-autoexport-do-export nil 'local)
