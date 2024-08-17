@@ -2,27 +2,30 @@
 
 PACKAGE = org-autoexport.el
 
+ELDEV = eldev $(ARGS)
 CLEANERS = distribution
 
 all: help
 
 setup: ## Set up Eldev
-	@ eldev init -n
+	@ $(ELDEV) init -n
 
 ehelp: ## Show Eldev help
-	@ eldev help
+	@ $(ELDEV) help
 
-check: ## Run lint checks
-	@ eldev lint $(OPTS)
+check: lint doctor test ## Run all tests
+
+lint: ## Run lint checks
+	@- $(ELDEV) lint $(OPTS)
 
 doctor: ## Run package checks
-	@ eldev doctor $(OPTS)
+	@- $(ELDEV) doctor $(OPTS)
 
-test: ## Run tests
-	@ eldev test $(OPTS)
+test: ## Run unit tests
+	@- $(ELDEV) test $(OPTS)
 
 clean: ## Clean up
-	@ eldev clean $(OPTS) $(CLEANERS)
+	@ $(ELDEV) clean $(OPTS) $(CLEANERS)
 
 help: ## This help message
 	@ echo "Usage: make [target]"
