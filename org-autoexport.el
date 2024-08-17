@@ -73,20 +73,26 @@ is found in `org-autoexport-backend-suffix-map'."
   "Export the current org file to one or more backends if required.
 
 The backends are listed in the #+auto_export: directives.  If a backend
-is unknown, a warning is written to the *Warnings* buffer."
+is unknown, a warning is written to the *Warnings* buffer.
 
-  (let (backend suffix filename)
+Buffer restrictions are ignored when autoexporting."
+
+  (let (backend suffix filename msg)
     (unless (buffer-file-name)
       (error "Buffer has no associated filename"))
-    (dolist (backend-name (org-autoexport-get-backends))
-      (setq suffix (org-autoexport-get-suffix backend-name))
-      (setq backend (org-autoexport-get-backend backend-name))
-      (setq filename (concat (file-name-base (buffer-file-name)) "." suffix))
-      (cond (backend
-             (message "Exporting to '%s' using %s backend" filename backend-name)
-             (org-export-to-file backend filename nil))
-            (t
-             (warn "No export backend for '%s'" backend-name))))))
+    (save-restriction
+      (widen)
+      (dolist (backend-name (org-autoexport-get-backends))
+        (setq suffix (org-autoexport-get-suffix backend-name))
+        (setq backend (org-autoexport-get-backend backend-name))
+        (setq filename (concat (file-name-base (buffer-file-name)) "." suffix))
+        (cond (backend
+               (setq msg (format "Exporting %s to '%s'" backend-name filename))
+               (message "%s..." msg)
+               (org-export-to-file backend filename nil)
+               (message "%s...done" msg))
+              (t
+               (warn "No export backend for '%s'" backend-name)))))))
 
 ;;;###autoload
 (define-minor-mode org-autoexport-mode
