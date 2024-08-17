@@ -31,8 +31,12 @@ local ~after-save-hook~ function (here's one that auto-exports to
 
 Which works, but I find it ugly.  It means copy-pasting hard-to-remember
 code at the end of each org file, instead of declaring the export in the
-same way as other org declarations.  Instead, I want to be able to do
-something similar to what the [[https://github.com/yilkalargaw/org-auto-tangle][org-auto-tangle]] packages does for tangling:
+same way as other org declarations.  More seriously, it doesn't take
+narrowing into account: if the file is saved while narrowed, only the
+narrowed part of the buffer will be exported.
+
+Instead, I want to be able to do something similar to what the
+[[https://github.com/yilkalargaw/org-auto-tangle][org-auto-tangle]] packages does for tangling:
 
 #+begin_example
 ,#+auto_export: gfm
