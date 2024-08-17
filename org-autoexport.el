@@ -69,6 +69,7 @@ Default is the name of the backend itself, unless a special case
 is found in `org-autoexport-backend-suffix-map'."
   (alist-get backend-name org-autoexport-backend-suffix-map backend-name nil 'equal))
 
+;;;###autoload
 (defun org-autoexport-do-export ()
   "Export the current org file to one or more backends if required.
 
@@ -76,7 +77,7 @@ The backends are listed in the #+auto_export: directives.  If a backend
 is unknown, a warning is written to the *Warnings* buffer.
 
 Buffer restrictions are ignored when autoexporting."
-
+  (interactive)
   (let (backend suffix filename msg)
     (unless (buffer-file-name)
       (error "Buffer has no associated filename"))

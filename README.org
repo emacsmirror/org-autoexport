@@ -49,7 +49,7 @@ repeat myself.
 
 The package defines a minor mode called =org-autoexport-mode=, which (if
 enabled) performs the export after saving the file.  Simply require the
-package in you emacs init and hook it into org-mode.
+package in you emacs init and hook it into org-mode:
 
 #+begin_src elisp :results silent
   (require 'org-autoexport)
@@ -77,7 +77,8 @@ installed (this package isn't yet available from MELPA):
 #+end_src
 
 If the minor mode is on, it will try to automatically export your org files
-if they contain any =#+auto_export:= options.
+if they contain any =#+auto_export:= options.  You can also invoke the export
+interactively, via the ~org-autoexport-do-export()~ function.
 
 Auto-export will fail if it the requested export backend can't be found,
 and you'll get a popup warning buffer to that effect.  In that case you
@@ -255,7 +256,7 @@ Here's the function which puts it all together, and does the exporting:
   is unknown, a warning is written to the *Warnings* buffer.
 
   Buffer restrictions are ignored when autoexporting."
-
+    (interactive)
     (let (backend suffix filename msg)
       (unless (buffer-file-name)
         (error "Buffer has no associated filename"))
@@ -395,6 +396,7 @@ The tangled package file:
 
   <<get-suffix>>
 
+  ;;;###autoload
   <<do-export>>
 
   ;;;###autoload

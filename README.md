@@ -21,7 +21,7 @@ That way, I can have the auto-export control for a bunch of org files as part of
 
 # Usage
 
-The package defines a minor mode called `org-autoexport-mode`, which (if enabled) performs the export after saving the file. Simply require the package in you emacs init and hook it into org-mode.
+The package defines a minor mode called `org-autoexport-mode`, which (if enabled) performs the export after saving the file. Simply require the package in you emacs init and hook it into org-mode:
 
 ```elisp
 (require 'org-autoexport)
@@ -47,7 +47,7 @@ You can install directly from the source repo if you have [vc-use-package](https
   :hook (org-mode . org-autoexport-mode))
 ```
 
-If the minor mode is on, it will try to automatically export your org files if they contain any `#+auto_export:` options.
+If the minor mode is on, it will try to automatically export your org files if they contain any `#+auto_export:` options. You can also invoke the export interactively, via the `org-autoexport-do-export()` function.
 
 Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
 
