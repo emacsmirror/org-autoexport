@@ -5,6 +5,8 @@ CLEANERS = distribution
 
 .DEFAULT:; @ $(ELDEV) $@ $(ARGS)
 
+.PHONY: test
+
 all: help
 
 setup: ## Set up Eldev
@@ -22,7 +24,7 @@ doctor: ## Run package checks
 	@- $(ELDEV) doctor $(ARGS)
 
 test: ## Run unit tests
-	@- $(ELDEV) test $(ARGS)
+	@- $(ELDEV) test -r standard $(ARGS)
 
 clean: ## Clean up
 	@ $(ELDEV) clean $(ARGS) $(CLEANERS)
