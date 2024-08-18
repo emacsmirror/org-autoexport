@@ -1,6 +1,16 @@
+- [Introduction](#intro)
+- [Usage](#usage)
+- [Installation](#install)
+- [Contributing](#contrib)
+- [License](#license)
+
+
+
+<a id="intro"></a>
+
 # Introduction
 
-This emacs package allows you to synchronize exported versions of your org files, by auto-exporting them every time you save. My original reason for this was because I prefer to write docs in org mode, but some git repo sites don't support org mode as a format for their `README` files (looking at you, [sourcehut](https://sr.ht/)). But I don't want to have to remember to export after each change.
+This emacs package allows you to synchronize exported versions of your org files, by auto-exporting them every time you save. My original reason for this was because I prefer to write docs in org mode, but some git repo sites don't support org mode as a format for their `README` files (looking at you, [sourcehut](https://lists.sr.ht/~sircmpwn/sr.ht-discuss/%3Cfe7aa296-9c90-463d-b4e6-50eeb7e57428%40localhost%3E)). But I don't want to have to remember to export after each change.
 
 This being emacs, there are several ways to do it. One is simply to add a local `after-save-hook` function (here's one that auto-exports to [github-flavoured markdown](https://github.github.com/gfm/) on save):
 
@@ -21,43 +31,43 @@ Instead, I want to be able to do something similar to what the [org-auto-tangle]
 That way, I can have the auto-export control for a bunch of org files as part of a common setup file declared by `#+setupfile:`, so I don't have to repeat myself.
 
 
+<a id="usage"></a>
+
 # Usage
 
-The package defines a minor mode called `org-autoexport-mode`, which (if enabled) performs the export after saving the file. Simply require the package in you emacs init and hook it into org-mode:
+The package defines a minor mode called `org-autoexport-mode`, which (if enabled) will try to export to other formats after saving the current org file. It will perform one export for each `#+auto_export:` option it finds. You can also invoke the export process interactively, via the `org-autoexport-do-export()` function.
+
+Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
+
+
+<a id="install"></a>
+
+# Installation
+
+The package isn't yet available from MELPA, but you can install it directly from the repo using `package-vc-install`:
+
+```elisp
+(package-vc-install '(org-autoexport
+                      :url "https://git.sr.ht/~zondo/org-autoexport"
+                      :branch "develop"))
+```
+
+Then simply require the package in your emacs init file and hook it into org mode:
 
 ```elisp
 (require 'org-autoexport)
 (add-hook 'org-mode-hook 'org-autoexport-mode)
 ```
 
-Alternatively, you can use `use-package`:
 
-```elisp
-(use-package org-autoexport
-  ;; this line is necessary only if you cloned the repo in your site-lisp directory
-  :load-path "site-lisp/org-autoexport/"
-  :defer t
-  :hook (org-mode . org-autoexport-mode))
-```
-
-You can install directly from the source repo if you have [vc-use-package](https://github.com/slotThe/vc-use-package) installed (this package isn't yet available from MELPA):
-
-```elisp
-(use-package org-autoexport
-  :defer t
-  :vc (:fetcher sourcehut :repo zondo/org-autoexport)
-  :hook (org-mode . org-autoexport-mode))
-```
-
-If the minor mode is on, it will try to automatically export your org files if they contain any `#+auto_export:` options. You can also invoke the export interactively, via the `org-autoexport-do-export()` function.
-
-Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
-
+<a id="contrib"></a>
 
 # Contributing
 
 You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems [here](https://todo.sr.ht/~zondo/org-autoexport).
 
+
+<a id="license"></a>
 
 # License
 
