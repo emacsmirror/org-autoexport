@@ -24,7 +24,7 @@ This being emacs, there are several ways to do it. One is simply to add a local 
 
 This works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing into account: if the file is saved while narrowed, only the narrowed part of the buffer will be exported.
 
-Instead, I want to be able to do something similar to what the [org-auto-tangle](https://github.com/yilkalargaw/org-auto-tangle) packages does for tangling:
+Instead I want to be able to do something similar to what the [org-auto-tangle](https://github.com/yilkalargaw/org-auto-tangle) packages does for tangling, and be able to say:
 
 ```
 #+auto_export: gfm
