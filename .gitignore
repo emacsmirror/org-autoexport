@@ -1,3 +1,7 @@
+README.html
+
+*.elc
 *-autoloads.el
+
 .eldev
 Eldev-local
