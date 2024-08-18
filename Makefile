@@ -1,14 +1,14 @@
-# Makefile for managing MELPA package.
+# Front end makefile for eldev.
 
-PACKAGE = org-autoexport.el
-
-ELDEV = eldev $(ARGS)
+ELDEV = eldev $(OPTS)
 CLEANERS = distribution
+
+.DEFAULT:; @ $(ELDEV) $@ $(ARGS)
 
 all: help
 
 setup: ## Set up Eldev
-	@ $(ELDEV) init -n
+	@ $(ELDEV) upgrade-self
 
 ehelp: ## Show Eldev help
 	@ $(ELDEV) help
@@ -16,16 +16,16 @@ ehelp: ## Show Eldev help
 check: lint doctor test ## Run all tests
 
 lint: ## Run lint checks
-	@- $(ELDEV) lint $(OPTS)
+	@- $(ELDEV) lint $(ARGS)
 
 doctor: ## Run package checks
-	@- $(ELDEV) doctor $(OPTS)
+	@- $(ELDEV) doctor $(ARGS)
 
 test: ## Run unit tests
-	@- $(ELDEV) test $(OPTS)
+	@- $(ELDEV) test $(ARGS)
 
 clean: ## Clean up
-	@ $(ELDEV) clean $(OPTS) $(CLEANERS)
+	@ $(ELDEV) clean $(ARGS) $(CLEANERS)
 
 help: ## This help message
 	@ echo "Usage: make [target]"
