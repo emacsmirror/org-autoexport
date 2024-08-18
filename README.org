@@ -125,7 +125,18 @@ This package is licensed under the the 2-Clause BSD License:
 
 * Development                                                      :noexport:
 
-Development of this package is managed by [[https://emacs-eldev.github.io/eldev][Eldev]], and a Makefile.
+Development of this package is done with [[https://emacs-eldev.github.io/eldev][Eldev]], and a Makefile.  If you
+don't have Eldev, you will need to install it:
+
+#+begin_src sh :results silent
+  url=https://raw.github.com/emacs-eldev/eldev/master/bin/eldev
+  instdir=$HOME/.local/bin
+  curl -fsSL $url > $instdir/eldev
+  chmod a+x $instdir/eldev
+  echo Installed eldev to $instdir
+#+end_src
+
+#+RESULTS:
 
 ** Implementation
 
