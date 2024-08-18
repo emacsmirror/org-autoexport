@@ -10,9 +10,11 @@
 
 # Introduction
 
-This emacs package allows you to synchronize exported versions of your org files, by auto-exporting them every time you save. My original reason for this was because I prefer to write docs in org mode, but some git repo sites don't support org mode as a format for their `README` files (looking at you, [sourcehut](https://lists.sr.ht/~sircmpwn/sr.ht-discuss/%3Cfe7aa296-9c90-463d-b4e6-50eeb7e57428%40localhost%3E)). But I don't want to have to remember to export after each change.
+This emacs package allows you to synchronize exported versions of your [org](https://orgmode.org/) files, by auto-exporting them every time you save.
 
-This being emacs, there are several ways to do it. One is simply to add a local `after-save-hook` function (here's one that auto-exports to [github-flavoured markdown](https://github.github.com/gfm/) on save):
+My original reason for writing it was because I prefer to write docs in org mode, but some forge sites don't support org mode as a format for their `README` files (looking at you, [sourcehut](https://lists.sr.ht/~sircmpwn/sr.ht-discuss/%3Cfe7aa296-9c90-463d-b4e6-50eeb7e57428%40localhost%3E)) and insist on [Markdown](https://www.adamhyde.net/whats-wrong-with-markdown/). But I don't want to have to remember to export after each change.
+
+This being emacs, there are several ways to do it. One is simply to add a local `after-save-hook` function (here's one that auto-exports to [github-flavoured](https://github.github.com/gfm/) Markdown on save):
 
 ```
 # Local Variables:
@@ -20,7 +22,7 @@ This being emacs, there are several ways to do it. One is simply to add a local 
 # End:
 ```
 
-Which works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing into account: if the file is saved while narrowed, only the narrowed part of the buffer will be exported.
+This works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing into account: if the file is saved while narrowed, only the narrowed part of the buffer will be exported.
 
 Instead, I want to be able to do something similar to what the [org-auto-tangle](https://github.com/yilkalargaw/org-auto-tangle) packages does for tangling:
 
@@ -59,6 +61,14 @@ Then simply require the package in your emacs init file and hook it into org mod
 (add-hook 'org-mode-hook 'org-autoexport-mode)
 ```
 
+Alternatively, you can use `use-package`:
+
+```elisp
+(use-package org-autoexport
+  :defer t
+  :hook (org-mode . org-autoexport-mode))
+```
+
 
 <a id="contrib"></a>
 
@@ -71,29 +81,4 @@ You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexp
 
 # License
 
-This package is licensed under the the 2-Clause BSD License:
-
-```text
-Copyright (c) 2024, Glenn Hutchings
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-```
+This package is licensed under the the [2-Clause BSD License](https://opensource.org/license/bsd-2-clause).
