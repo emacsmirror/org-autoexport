@@ -5,7 +5,7 @@
 #+options: author:nil num:nil toc:t tags:nil
 #+startup: show3levels
 
-#+property: header-args+ :eval no-export :exports both :noweb yes
+#+property: header-args+ :eval no-export :exports both :noweb yes :mkdirp yes
 
 #+auto_export: gfm
 #+auto_export: html
@@ -112,7 +112,7 @@ You can find the source repo on [[https://git.sr.ht/~zondo/org-autoexport][sourc
 
 This package is licensed under the the [[https://opensource.org/license/bsd-2-clause][2-Clause BSD License]].
 
-#+name: license
+#+name: license-text
 #+begin_src text :exports none :eval no :tangle COPYING
   Copyright (c) 2024, Glenn Hutchings
 
@@ -154,8 +154,6 @@ don't have Eldev, you will need to install it:
 
   echo Installed eldev to $instdir
 #+end_src
-
-#+RESULTS:
 
 ** Implementation
 
@@ -344,7 +342,7 @@ Toggling the minor mode:
 
 Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md][buttercup]] format:
 
-#+begin_src elisp :tangle org-autoexport-test.el
+#+begin_src elisp :tangle test/org-autoexport-tests.el
   ;;; -*- lexical-binding: t; -*-
 
   (require 'buttercup)
@@ -414,7 +412,7 @@ The tangled package file:
 
   ;; <<header>>
 
-  ;; <<license>>
+  ;; <<license-text>>
 
   ;;; Commentary:
 
