@@ -46,22 +46,14 @@ Auto-export will fail if it the requested export backend can't be found, and you
 
 # Installation
 
-The package isn't yet available from MELPA, but you can install it directly from the repo using `package-vc-install`:
-
-```elisp
-(package-vc-install '(org-autoexport
-                      :url "https://git.sr.ht/~zondo/org-autoexport"
-                      :branch "develop"))
-```
-
-Then simply require the package in your emacs init file and hook it into org mode:
+Simply require the package in your emacs init file and hook it into org mode:
 
 ```elisp
 (require 'org-autoexport)
 (add-hook 'org-mode-hook 'org-autoexport-mode)
 ```
 
-Alternatively, you can use `use-package`:
+Alternatively, you can install from MELPA via `use-package`:
 
 ```elisp
 (use-package org-autoexport
