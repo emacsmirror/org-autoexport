@@ -67,6 +67,16 @@ and you'll get a popup warning buffer to that effect.  In that case you
 will need to install and load the export backend first (for example, to get
 the =gfm= export mentioned above, you will need to load the [[https://github.com/larstvei/ox-gfm][ox-gfm]] package).
 
+If want to suppress export for particular files (e.g., files included in
+other files via =#+setupfile:=) you can turn autoexport mode off for those
+files via local variables:
+
+#+begin_example
+# Local Variables:
+# org-autoexport-mode: nil
+# End:
+#+end_example
+
 * Installation
   :PROPERTIES:
   :header-args+: :eval no
@@ -88,6 +98,10 @@ Alternatively, you can install from MELPA via =use-package=:
     :defer t
     :hook (org-mode . org-autoexport-mode))
 #+end_src
+
+Autoexport mode adds an =AutoExp= indicator to the mode line to show that
+it's active.  You can change or suppress that using the [[https://www.gnu.org/software/emacs/manual/html_node/use-package/Diminish.html][diminish]] option of
+=use-package=.
 
 * Contributing
   :PROPERTIES:
