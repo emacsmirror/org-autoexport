@@ -40,7 +40,7 @@ narrowing into account: if the file is saved while narrowed, only the
 narrowed part of the buffer will be exported.
 
 Instead I want to be able to do something similar to what the
-[[https://github.com/yilkalargaw/org-auto-tangle][org-auto-tangle]] packages does for tangling, and be able to say:
+[[https://github.com/yilkalargaw/org-auto-tangle][org-auto-tangle]] package does for tangling, and be able to say:
 
 #+begin_example
 ,#+auto_export: gfm
