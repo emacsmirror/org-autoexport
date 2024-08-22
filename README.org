@@ -180,7 +180,7 @@ Version:
 
 #+name: version
 #+begin_src text
-  0.0
+  1.0
 #+end_src
 
 The package header:
@@ -464,9 +464,7 @@ And that's it.
 ** Todo list
 
 - TODO: Add a customization group
-- TODO: Choose a versioning system (calver?)
 - TODO: Add more package tests
-- TODO: Auto-tangle the correct date and year
 
 * Epilogue                                                         :noexport:
 
