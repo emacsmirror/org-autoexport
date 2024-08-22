@@ -22,7 +22,7 @@ This being emacs, there are several ways to do it. One is simply to add a local 
 # End:
 ```
 
-This works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing into account: if the file is saved while narrowed, only the narrowed part of the buffer will be exported.
+This works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing into account: if the file is saved while its buffer is narrowed, only that part of the buffer will be exported.
 
 Instead I want to be able to do something similar to what the [org-auto-tangle](https://github.com/yilkalargaw/org-auto-tangle) package does for tangling, and be able to say:
 
