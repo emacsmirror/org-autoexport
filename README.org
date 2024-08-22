@@ -119,7 +119,7 @@ This package is licensed under the the [[https://opensource.org/license/bsd-2-cl
 
 #+name: license-text
 #+begin_src text :exports none :eval no :tangle COPYING
-  Copyright (c) 2024, Glenn Hutchings
+  Copyright (c) <<this-year()>>, Glenn Hutchings
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
@@ -158,6 +158,139 @@ don't have Eldev, you will need to install it:
   chmod a+x $instdir/eldev
 
   echo Installed eldev to $instdir
+#+end_src
+
+** Package
+
+The package name:
+
+#+name: pkg
+#+begin_src text
+  org-autoexport
+#+end_src
+
+The package summary:
+
+#+name: summary
+#+begin_src text
+  Auto-export org file on save
+#+end_src
+
+Version:
+
+#+name: version
+#+begin_src text
+  0.0
+#+end_src
+
+The package header:
+
+#+name: header
+#+begin_src text
+  Author: Glenn Hutchings <zondo42@gmail.com>
+  Maintainer: Glenn Hutchings <zondo42@gmail.com>
+  URL: https://git.sr.ht/~zondo/<<pkg>>
+  Version: <<version>>
+  Keywords: org, wp
+  Package-Requires: ((emacs "28.1") (org "9.6"))
+
+  This file is not part of GNU Emacs.
+#+end_src
+
+The package description:
+
+#+name: description
+#+begin_src text
+  It is common to want to export org files to one or more other formats
+  every time you save your changes.  This package this allows you to do so
+  using #+auto_export: options in the org file.
+#+end_src
+
+What year is it now?
+
+#+name: this-year
+#+begin_src shell :results output silent
+  echo -n $(date +%Y)
+#+end_src
+
+The tangled package file:
+
+#+begin_src elisp :tangle org-autoexport.el
+  ;;; <<pkg>>.el --- <<summary>> -*- lexical-binding: t; -*-
+
+  ;; <<header>>
+
+  ;; <<license-text>>
+
+  ;;; Commentary:
+
+  ;; <<description>>
+
+  ;;; Code:
+
+  (require 'org)
+  (require 'ox)
+
+  <<suffix-map>>
+
+  <<get-backends>>
+
+  <<get-backend>>
+
+  <<get-suffix>>
+
+  ;;;###autoload
+  <<do-export>>
+
+  ;;;###autoload
+  <<autoexport-mode>>
+
+  (provide '<<pkg>>)
+
+  ;;; <<pkg>>.el ends here
+#+end_src
+
+** Testing
+   :PROPERTIES:
+   :header-args+: :eval no
+   :END:
+
+Doing the export directly:
+
+#+begin_src elisp
+  (org-autoexport-do-export)
+#+end_src
+
+Toggling the minor mode:
+
+#+begin_src elisp
+  (org-autoexport-mode 'toggle)
+#+end_src
+
+Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md][buttercup]] format:
+
+#+begin_src elisp :tangle test/org-autoexport-tests.el
+  ;;; -*- lexical-binding: t; -*-
+
+  (require 'buttercup)
+  (require 'org-autoexport)
+
+  (describe "org-autoexport"
+    (before-all
+     (find-file "README.org"))
+
+    (it "finds the backend names in README.org"
+        (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
+
+    (it "finds the correct suffix"
+        (expect (org-autoexport-get-suffix "html") :to-equal "html")
+        (expect (org-autoexport-get-suffix "gfm") :to-equal "md")
+        (expect (org-autoexport-get-suffix "latex") :to-equal "tex"))
+
+    (it "finds the backend from its name"
+        (expect (org-autoexport-get-backend "html") :not :to-be nil)
+        (expect (org-autoexport-get-backend "latex") :not :to-be nil)
+        (expect (org-autoexport-get-backend "nosuch") :to-be nil)))
 #+end_src
 
 ** Implementation
@@ -327,125 +460,6 @@ exporting.  The idea here is to have this turned on in ~org-mode-hook~.
 #+end_src
 
 And that's it.
-
-** Testing
-   :PROPERTIES:
-   :header-args+: :eval no
-   :END:
-
-Doing the export directly:
-
-#+begin_src elisp
-  (org-autoexport-do-export)
-#+end_src
-
-Toggling the minor mode:
-
-#+begin_src elisp
-  (org-autoexport-mode 'toggle)
-#+end_src
-
-Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md][buttercup]] format:
-
-#+begin_src elisp :tangle test/org-autoexport-tests.el
-  ;;; -*- lexical-binding: t; -*-
-
-  (require 'buttercup)
-  (require 'org-autoexport)
-
-  (describe "org-autoexport"
-    (before-all
-     (find-file "README.org"))
-
-    (it "finds the backend names in README.org"
-        (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
-
-    (it "finds the correct suffix"
-        (expect (org-autoexport-get-suffix "html") :to-equal "html")
-        (expect (org-autoexport-get-suffix "gfm") :to-equal "md")
-        (expect (org-autoexport-get-suffix "latex") :to-equal "tex"))
-
-    (it "finds the backend from its name"
-        (expect (org-autoexport-get-backend "html") :not :to-be nil)
-        (expect (org-autoexport-get-backend "latex") :not :to-be nil)
-        (expect (org-autoexport-get-backend "nosuch") :to-be nil)))
-#+end_src
-
-** Package
-
-The package name:
-
-#+name: pkg
-#+begin_src text
-  org-autoexport
-#+end_src
-
-The package summary:
-
-#+name: summary
-#+begin_src text
-  Auto-export org file on save
-#+end_src
-
-The package header:
-
-#+name: header
-#+begin_src text
-  Author: Glenn Hutchings <zondo42@gmail.com>
-  Maintainer: Glenn Hutchings <zondo42@gmail.com>
-  URL: https://git.sr.ht/~zondo/<<pkg>>
-  Version: 0.1
-  Keywords: org, wp
-  Package-Requires: ((emacs "28.1") (org "9.6"))
-
-  This file is not part of GNU Emacs.
-#+end_src
-
-The package description:
-
-#+name: description
-#+begin_src text
-  It is common to want to export org files to one or more other formats
-  every time you save your changes.  This package this allows you to do so
-  using #+auto_export: options in the org file.
-#+end_src
-
-The tangled package file:
-
-#+begin_src elisp :tangle org-autoexport.el
-  ;;; <<pkg>>.el --- <<summary>> -*- lexical-binding: t; -*-
-
-  ;; <<header>>
-
-  ;; <<license-text>>
-
-  ;;; Commentary:
-
-  ;; <<description>>
-
-  ;;; Code:
-
-  (require 'org)
-  (require 'ox)
-
-  <<suffix-map>>
-
-  <<get-backends>>
-
-  <<get-backend>>
-
-  <<get-suffix>>
-
-  ;;;###autoload
-  <<do-export>>
-
-  ;;;###autoload
-  <<autoexport-mode>>
-
-  (provide '<<pkg>>)
-
-  ;;; <<pkg>>.el ends here
-#+end_src
 
 ** Todo list
 
