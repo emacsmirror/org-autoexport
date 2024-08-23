@@ -10,6 +10,8 @@
 #+auto_export: gfm
 #+auto_export: html
 
+{{{badge_melpa(org-autoexport)}}}
+
 * Introduction
   :PROPERTIES:
   :CUSTOM_ID: intro
@@ -467,6 +469,8 @@ And that's it.
 - TODO: Add more package tests
 
 * Epilogue                                                         :noexport:
+
+#+macro: badge_melpa [[https://melpa.org/#/$1][file:https://melpa.org/packages/$1-badge.svg]]
 
 # Local Variables:
 # org-confirm-babel-evaluate: nil

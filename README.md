@@ -4,6 +4,7 @@
 - [Contributing](#contrib)
 - [License](#license)
 
+[![img](https://melpa.org/packages/org-autoexport-badge.svg)](https://melpa.org/#/org-autoexport)
 
 
 <a id="intro"></a>
