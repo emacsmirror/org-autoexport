@@ -467,6 +467,7 @@ And that's it.
 
 - TODO: Add a customization group
 - TODO: Add more package tests
+- FIXME: Active region restricts export
 
 * Epilogue                                                         :noexport:
 
