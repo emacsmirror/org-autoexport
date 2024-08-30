@@ -168,28 +168,48 @@ don't have Eldev, you will need to install it:
 
 ** Package
 
-The package name:
+Package name:
 
 #+name: pkg
 #+begin_src text
   org-autoexport
 #+end_src
 
-The package summary:
+Summary:
 
 #+name: summary
 #+begin_src text
   Auto-export org file on save
 #+end_src
 
+The package description:
+
+#+name: description
+#+begin_src text
+  It is common to want to export org files to one or more other formats
+  every time you save your changes.  This package this allows you to do so
+  using #+auto_export: options in the org file.
+#+end_src
+
 Version:
 
 #+name: version
 #+begin_src text
-  1.0
+  1.1
 #+end_src
 
-The package header:
+Version history:
+
+#+name: history
+#+begin_src text
+  Version 1.0 (22 Aug 2024):
+     First release
+
+  Version 1.1 (latest):
+     Deactivate mark before exporting
+#+end_src
+
+Package header:
 
 #+name: header
 #+begin_src text
@@ -201,15 +221,6 @@ The package header:
   Package-Requires: ((emacs "28.1") (org "9.6"))
 
   This file is not part of GNU Emacs.
-#+end_src
-
-The package description:
-
-#+name: description
-#+begin_src text
-  It is common to want to export org files to one or more other formats
-  every time you save your changes.  This package this allows you to do so
-  using #+auto_export: options in the org file.
 #+end_src
 
 What year is it now?
@@ -231,6 +242,10 @@ The tangled package file:
   ;;; Commentary:
 
   ;; <<description>>
+
+  ;;; History:
+
+  ;; <<history>>
 
   ;;; Code:
 

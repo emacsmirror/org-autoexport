@@ -3,7 +3,7 @@
 ;; Author: Glenn Hutchings <zondo42@gmail.com>
 ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
 ;; URL: https://git.sr.ht/~zondo/org-autoexport
-;; Version: 1.0
+;; Version: 1.1
 ;; Keywords: org, wp
 ;; Package-Requires: ((emacs "28.1") (org "9.6"))
 ;; 
@@ -37,6 +37,14 @@
 ;; It is common to want to export org files to one or more other formats
 ;; every time you save your changes.  This package this allows you to do so
 ;; using #+auto_export: options in the org file.
+
+;;; History:
+
+;; Version 1.0 (22 Aug 2024):
+;;    First release
+;; 
+;; Version 1.1 (latest):
+;;    Deactivate mark before exporting
 
 ;;; Code:
 
