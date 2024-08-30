@@ -83,6 +83,7 @@ Buffer restrictions are ignored when autoexporting."
       (error "Buffer has no associated filename"))
     (save-restriction
       (widen)
+      (deactivate-mark)
       (dolist (backend-name (org-autoexport-get-backends))
         (setq suffix (org-autoexport-get-suffix backend-name))
         (setq backend (org-autoexport-get-backend backend-name))

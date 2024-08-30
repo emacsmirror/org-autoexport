@@ -23,7 +23,7 @@ This being emacs, there are several ways to do it. One is simply to add a local 
 # End:
 ```
 
-This works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing into account: if the file is saved while its buffer is narrowed, only that part of the buffer will be exported.
+This works, but I find it ugly. It means copy-pasting hard-to-remember code at the end of each org file, instead of declaring the export in the same way as other org declarations. More seriously, it doesn't take narrowing or the active region into account: if the file is saved while its buffer is narrowed, or a region is active, only that part of the buffer will be exported.
 
 Instead I want to be able to do something similar to what the [org-auto-tangle](https://github.com/yilkalargaw/org-auto-tangle) package does for tangling, and be able to say:
 
@@ -41,6 +41,8 @@ That way, I can have the auto-export control for a bunch of org files as part of
 The package defines a minor mode called `org-autoexport-mode`, which (if enabled) will try to export to other formats after saving the current org file. It will perform one export for each `#+auto_export:` option it finds. You can also invoke the export process interactively, via the `org-autoexport-do-export()` function.
 
 Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
+
+The mark will be deactivated before the export process; this is to avoid restricting the export to the active region.
 
 If want to suppress export for particular files (e.g., files included in other files via `#+setupfile:`) you can turn autoexport mode off for those files via local variables:
 
