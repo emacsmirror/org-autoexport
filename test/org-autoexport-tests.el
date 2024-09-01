@@ -10,6 +10,9 @@
   (it "finds the backend names in README.org"
       (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
 
+  (it "finds the correct filename"
+      (expect (org-autoexport-get-filename) :to-equal "README"))
+
   (it "finds the correct suffix"
       (expect (org-autoexport-get-suffix "html") :to-equal "html")
       (expect (org-autoexport-get-suffix "gfm") :to-equal "md")

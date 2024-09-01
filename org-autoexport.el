@@ -45,6 +45,7 @@
 ;; 
 ;; Version 1.1 (latest):
 ;;    Deactivate mark before exporting
+;;    Support the EXPORT_FILE_NAME file property
 
 ;;; Code:
 
@@ -64,7 +65,7 @@ variable lists the special cases where they are different.")
 
 This is the list of backend names declared by #+auto_export:
 keywords in the org file."
-  (delete "AUTO_EXPORT" (car (org-collect-keywords '("AUTO_EXPORT")))))
+  (cdar (org-collect-keywords '("AUTO_EXPORT"))))
 
 (defun org-autoexport-get-backend (backend-name)
   "Return the export backend used to autoexport using BACKEND-NAME."
@@ -77,6 +78,21 @@ Default is the name of the backend itself, unless a special case
 is found in `org-autoexport-backend-suffix-map'."
   (alist-get backend-name org-autoexport-backend-suffix-map backend-name nil 'equal))
 
+  (defun org-autoexport-get-filename ()
+    "Return the export filename used for auto-export.
+
+Use the EXPORT_FILE_NAME file property if set; otherwise the
+basename of the current buffer's filename.
+"
+    (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
+          (bufname (buffer-file-name)))
+      (cond (propname
+             (cadar propname))
+            (bufname
+             (file-name-base bufname))
+            (t
+             (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
+
 ;;;###autoload
 (defun org-autoexport-do-export ()
   "Export the current org file to one or more backends if required.
@@ -86,20 +102,18 @@ is unknown, a warning is written to the *Warnings* buffer.
 
 Buffer restrictions are ignored when autoexporting."
   (interactive)
-  (let (backend suffix filename msg)
-    (unless (buffer-file-name)
-      (error "Buffer has no associated filename"))
+  (let (backend suffix path msg)
     (save-restriction
       (widen)
       (deactivate-mark)
       (dolist (backend-name (org-autoexport-get-backends))
         (setq suffix (org-autoexport-get-suffix backend-name))
         (setq backend (org-autoexport-get-backend backend-name))
-        (setq filename (concat (file-name-base (buffer-file-name)) "." suffix))
+        (setq path (concat (org-autoexport-get-filename) "." suffix))
         (cond (backend
-               (setq msg (format "Exporting %s to '%s'" backend-name filename))
+               (setq msg (format "Exporting %s to '%s'" backend-name path))
                (message "%s..." msg)
-               (org-export-to-file backend filename nil)
+               (org-export-to-file backend path nil)
                (message "%s...done" msg))
               (t
                (warn "No export backend for '%s'" backend-name)))))))

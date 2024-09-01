@@ -40,6 +40,8 @@ That way, I can have the auto-export control for a bunch of org files as part of
 
 The package defines a minor mode called `org-autoexport-mode`, which (if enabled) will try to export to other formats after saving the current org file. It will perform one export for each `#+auto_export:` option it finds. You can also invoke the export process interactively, via the `org-autoexport-do-export()` function.
 
+By default the exported filename is based on the org filename. You can use the `EXPORT_FILE_NAME` file property to override this.
+
 Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
 
 The mark will be deactivated before the export process; this is to avoid restricting the export to the active region.
@@ -79,7 +81,7 @@ Autoexport mode adds an `AutoExp` indicator to the mode line to show that it's a
 
 # Contributing
 
-You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems [here](https://todo.sr.ht/~zondo/org-autoexport).
+You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems or suggestions [here](https://todo.sr.ht/~zondo/org-autoexport).
 
 
 <a id="license"></a>

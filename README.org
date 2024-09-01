@@ -65,6 +65,9 @@ file.  It will perform one export for each =#+auto_export:= option it finds.
 You can also invoke the export process interactively, via the
 ~org-autoexport-do-export()~ function.
 
+By default the exported filename is based on the org filename.  You can use
+the =EXPORT_FILE_NAME= file property to override this.
+
 Auto-export will fail if it the requested export backend can't be found,
 and you'll get a popup warning buffer to that effect.  In that case you
 will need to install and load the export backend first (for example, to get
@@ -114,7 +117,8 @@ it's active.  You can change or suppress that using the [[https://www.gnu.org/so
   :CUSTOM_ID: contrib
   :END:
 
-You can find the source repo on [[https://git.sr.ht/~zondo/org-autoexport][sourcehut]].  Report any problems [[https://todo.sr.ht/~zondo/org-autoexport][here]].
+You can find the source repo on [[https://git.sr.ht/~zondo/org-autoexport][sourcehut]].  Report any problems or
+suggestions [[https://todo.sr.ht/~zondo/org-autoexport][here]].
 
 * License
   :PROPERTIES:
@@ -207,6 +211,7 @@ Version history:
 
   Version 1.1 (latest):
      Deactivate mark before exporting
+     Support the EXPORT_FILE_NAME file property
 #+end_src
 
 Package header:
@@ -259,6 +264,8 @@ The tangled package file:
   <<get-backend>>
 
   <<get-suffix>>
+
+  <<get-filename>>
 
   ;;;###autoload
   <<do-export>>
@@ -347,7 +354,7 @@ Here's a function to get the backend names, using ~org-collect-keywords~:
 
   This is the list of backend names declared by #+auto_export:
   keywords in the org file."
-    (delete "AUTO_EXPORT" (car (org-collect-keywords '("AUTO_EXPORT")))))
+    (cdar (org-collect-keywords '("AUTO_EXPORT"))))
 #+end_src
 
 We can test that on the current file:
@@ -436,6 +443,38 @@ The value of =result= is:
 : Backend 'latex' found
 : Backend 'docx' not found
 
+We also need a way to determine what filename to use when exporting.  This
+will usually be the filename of the org file, but there is a property
+called =EXPORT_FILE_NAME= which should be allowed to override it:
+
+#+name: get-filename
+#+begin_src elisp :results silent
+    (defun org-autoexport-get-filename ()
+      "Return the export filename used for auto-export.
+
+  Use the EXPORT_FILE_NAME file property if set; otherwise the
+  basename of the current buffer's filename.
+  "
+      (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
+            (bufname (buffer-file-name)))
+        (cond (propname
+               (cadar propname))
+              (bufname
+               (file-name-base bufname))
+              (t
+               (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
+#+end_src
+
+Testing:
+
+#+name: test-filename
+#+begin_src elisp
+  (org-autoexport-get-filename)
+#+end_src
+
+#+RESULTS: test-filename
+: README
+
 Here's the function which puts it all together, and does the exporting:
 
 #+name: do-export
@@ -448,20 +487,18 @@ Here's the function which puts it all together, and does the exporting:
 
   Buffer restrictions are ignored when autoexporting."
     (interactive)
-    (let (backend suffix filename msg)
-      (unless (buffer-file-name)
-        (error "Buffer has no associated filename"))
+    (let (backend suffix path msg)
       (save-restriction
         (widen)
         (deactivate-mark)
         (dolist (backend-name (org-autoexport-get-backends))
           (setq suffix (org-autoexport-get-suffix backend-name))
           (setq backend (org-autoexport-get-backend backend-name))
-          (setq filename (concat (file-name-base (buffer-file-name)) "." suffix))
+          (setq path (concat (org-autoexport-get-filename) "." suffix))
           (cond (backend
-                 (setq msg (format "Exporting %s to '%s'" backend-name filename))
+                 (setq msg (format "Exporting %s to '%s'" backend-name path))
                  (message "%s..." msg)
-                 (org-export-to-file backend filename nil)
+                 (org-export-to-file backend path nil)
                  (message "%s...done" msg))
                 (t
                  (warn "No export backend for '%s'" backend-name)))))))
