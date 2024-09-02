@@ -86,7 +86,7 @@ basename of the current buffer's filename."
   (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
         (bufname (buffer-file-name)))
     (cond (propname
-           (cadar propname))
+           (file-name-base (cadar propname)))
           (bufname
            (file-name-base bufname))
           (t
