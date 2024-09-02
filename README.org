@@ -73,9 +73,6 @@ and you'll get a popup warning buffer to that effect.  In that case you
 will need to install and load the export backend first (for example, to get
 the =gfm= export mentioned above, you will need to load the [[https://github.com/larstvei/ox-gfm][ox-gfm]] package).
 
-The mark will be deactivated before the export process; this is to avoid
-restricting the export to the active region.
-
 If want to suppress export for particular files (e.g., files included in
 other files via =#+setupfile:=) you can turn autoexport mode off for those
 files via local variables:
@@ -491,19 +488,19 @@ Here's the function which puts it all together, and does the exporting:
     (interactive)
     (let (backend suffix path msg)
       (save-restriction
-        (widen)
-        (deactivate-mark)
-        (dolist (backend-name (org-autoexport-get-backends))
-          (setq suffix (org-autoexport-get-suffix backend-name))
-          (setq backend (org-autoexport-get-backend backend-name))
-          (setq path (concat (org-autoexport-get-filename) "." suffix))
-          (cond (backend
-                 (setq msg (format "Exporting %s to '%s'" backend-name path))
-                 (message "%s..." msg)
-                 (org-export-to-file backend path nil)
-                 (message "%s...done" msg))
-                (t
-                 (warn "No export backend for '%s'" backend-name)))))))
+        (save-mark-and-excursion
+          (widen)
+          (dolist (backend-name (org-autoexport-get-backends))
+            (setq suffix (org-autoexport-get-suffix backend-name))
+            (setq backend (org-autoexport-get-backend backend-name))
+            (setq path (concat (org-autoexport-get-filename) "." suffix))
+            (cond (backend
+                   (setq msg (format "Exporting %s to '%s'" backend-name path))
+                   (message "%s..." msg)
+                   (org-export-to-file backend path nil)
+                   (message "%s...done" msg))
+                  (t
+                   (warn "No export backend for '%s'" backend-name))))))))
 #+end_src
 
 Next we need a minor autoexport mode, which (if enabled) does the

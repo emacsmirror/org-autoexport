@@ -103,19 +103,19 @@ Buffer restrictions are ignored when autoexporting."
   (interactive)
   (let (backend suffix path msg)
     (save-restriction
-      (widen)
-      (deactivate-mark)
-      (dolist (backend-name (org-autoexport-get-backends))
-        (setq suffix (org-autoexport-get-suffix backend-name))
-        (setq backend (org-autoexport-get-backend backend-name))
-        (setq path (concat (org-autoexport-get-filename) "." suffix))
-        (cond (backend
-               (setq msg (format "Exporting %s to '%s'" backend-name path))
-               (message "%s..." msg)
-               (org-export-to-file backend path nil)
-               (message "%s...done" msg))
-              (t
-               (warn "No export backend for '%s'" backend-name)))))))
+      (save-mark-and-excursion
+        (widen)
+        (dolist (backend-name (org-autoexport-get-backends))
+          (setq suffix (org-autoexport-get-suffix backend-name))
+          (setq backend (org-autoexport-get-backend backend-name))
+          (setq path (concat (org-autoexport-get-filename) "." suffix))
+          (cond (backend
+                 (setq msg (format "Exporting %s to '%s'" backend-name path))
+                 (message "%s..." msg)
+                 (org-export-to-file backend path nil)
+                 (message "%s...done" msg))
+                (t
+                 (warn "No export backend for '%s'" backend-name))))))))
 
 ;;;###autoload
 (define-minor-mode org-autoexport-mode
