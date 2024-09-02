@@ -78,20 +78,19 @@ Default is the name of the backend itself, unless a special case
 is found in `org-autoexport-backend-suffix-map'."
   (alist-get backend-name org-autoexport-backend-suffix-map backend-name nil 'equal))
 
-  (defun org-autoexport-get-filename ()
-    "Return the export filename used for auto-export.
+(defun org-autoexport-get-filename ()
+  "Return the export filename used for auto-export.
 
 Use the EXPORT_FILE_NAME file property if set; otherwise the
-basename of the current buffer's filename.
-"
-    (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
-          (bufname (buffer-file-name)))
-      (cond (propname
-             (cadar propname))
-            (bufname
-             (file-name-base bufname))
-            (t
-             (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
+basename of the current buffer's filename."
+  (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
+        (bufname (buffer-file-name)))
+    (cond (propname
+           (cadar propname))
+          (bufname
+           (file-name-base bufname))
+          (t
+           (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
 
 ;;;###autoload
 (defun org-autoexport-do-export ()

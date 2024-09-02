@@ -310,6 +310,9 @@ Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/mas
     (it "finds the backend names in README.org"
         (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
 
+    (it "finds the correct filename"
+        (expect (org-autoexport-get-filename) :to-equal "README"))
+
     (it "finds the correct suffix"
         (expect (org-autoexport-get-suffix "html") :to-equal "html")
         (expect (org-autoexport-get-suffix "gfm") :to-equal "md")
@@ -449,20 +452,19 @@ called =EXPORT_FILE_NAME= which should be allowed to override it:
 
 #+name: get-filename
 #+begin_src elisp :results silent
-    (defun org-autoexport-get-filename ()
-      "Return the export filename used for auto-export.
+  (defun org-autoexport-get-filename ()
+    "Return the export filename used for auto-export.
 
   Use the EXPORT_FILE_NAME file property if set; otherwise the
-  basename of the current buffer's filename.
-  "
-      (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
-            (bufname (buffer-file-name)))
-        (cond (propname
-               (cadar propname))
-              (bufname
-               (file-name-base bufname))
-              (t
-               (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
+  basename of the current buffer's filename."
+    (let ((propname (org-collect-keywords '("EXPORT_FILE_NAME")))
+          (bufname (buffer-file-name)))
+      (cond (propname
+             (cadar propname))
+            (bufname
+             (file-name-base bufname))
+            (t
+             (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
 #+end_src
 
 Testing:
