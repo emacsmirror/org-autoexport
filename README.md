@@ -42,7 +42,7 @@ The package defines a minor mode called `org-autoexport-mode`, which (if enabled
 
 By default the exported filename is based on the org filename. You can use the `EXPORT_FILE_NAME` file property to override this.
 
-Auto-export will fail if it the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
+Auto-export will fail if the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
 
 If want to suppress export for particular files (e.g., files included in other files via `#+setupfile:`) you can turn autoexport mode off for those files via local variables:
 
