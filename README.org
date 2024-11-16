@@ -115,7 +115,7 @@ it's active.  You can change or suppress that using the [[https://www.gnu.org/so
   :END:
 
 You can find the source repo on [[https://git.sr.ht/~zondo/org-autoexport][sourcehut]].  Report any problems or
-suggestions [[https://todo.sr.ht/~zondo/org-autoexport][here]].
+suggestions [[https://todo.sr.ht/~zondo/org-autoexport][here]], or you can email me directly at [[mailto:zondo42@gmail.com][zondo42@gmail.com]].
 
 * License
   :PROPERTIES:

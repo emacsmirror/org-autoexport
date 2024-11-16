@@ -79,7 +79,7 @@ Autoexport mode adds an `AutoExp` indicator to the mode line to show that it's a
 
 # Contributing
 
-You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems or suggestions [here](https://todo.sr.ht/~zondo/org-autoexport).
+You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems or suggestions [here](https://todo.sr.ht/~zondo/org-autoexport), or you can email me directly at [zondo42@gmail.com](mailto:zondo42@gmail.com).
 
 
 <a id="license"></a>
