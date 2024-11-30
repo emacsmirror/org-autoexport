@@ -43,7 +43,7 @@
 ;; Version 1.0 (22 Aug 2024):
 ;;    First release
 ;; 
-;; Version 1.1 (latest):
+;; Version 1.1 (30 Nov 2024):
 ;;    Deactivate mark before exporting
 ;;    Support the EXPORT_FILE_NAME file property
 
