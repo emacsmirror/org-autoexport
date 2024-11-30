@@ -312,7 +312,7 @@ Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/mas
      (find-file "README.org"))
 
     (it "finds the backend names in README.org"
-        (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
+        (expect (org-autoexport-get-backend-info) :to-equal '("gfm" "html")))
 
     (it "finds the correct filename"
         (expect (org-autoexport-get-filename) :to-equal "README"))
@@ -334,8 +334,10 @@ Each of the =#+auto_export:= statements declares an org export /backend/ that
 does the export.  With that in mind, here's an outline of the export
 algorithm:
 
-1. Get the export backend names from the =#+auto_export:= statements in the
-   current file.
+1. Get the export backend information from the =#+auto_export:= statements in
+   the current file, in the form =name [function]=, where =name= is the name of
+   the backend (e.g., =html=) and the optional =function= is the suffix of a
+   function used to do the export (see next step).
 
 2. For each backend, do this:
 
@@ -352,15 +354,21 @@ algorithm:
 
 3. Er... that's it.
 
-Here's a function to get the backend names, using ~org-collect-keywords~:
+Here's a function to get the backend information, using
+~org-collect-keywords~:
 
 #+name: get-backends
 #+begin_src elisp :results verbatim :results silent
-  (defun org-autoexport-get-backends ()
-    "Get a list of backend names to auto-export from the current file.
+  (defun org-autoexport-get-backend-info ()
+    "Get a list of auto-export backend information from the current file.
 
-  This is the list of backend names declared by #+auto_export:
-  keywords in the org file."
+  This is the list of items declared by #+auto_export:
+  keywords in the org file.  Each item is in the format
+
+      NAME [FUNCTION]
+
+  where NAME is the backend name and the optional FUNCTION is the suffix
+  of a custom export function."
     (cdar (org-collect-keywords '("AUTO_EXPORT"))))
 #+end_src
 
@@ -368,13 +376,13 @@ We can test that on the current file:
 
 #+name: test-backends
 #+begin_src elisp :results verbatim
-  (org-autoexport-get-backends)
+  (org-autoexport-get-backend-info)
 #+end_src
 
 Here's the result:
 
 #+RESULTS: test-backends
-: ("gfm" "html")
+: ("gfm" "pandoc to-rtf")
 
 To map the backend names to the right suffix, we'll use an alist which
 lists the special cases:
@@ -406,17 +414,18 @@ Let's test it:
 
 #+name: test-suffixes
 #+begin_src elisp
-  (let (suffix (result ""))
-    (dolist (backend-name (org-autoexport-get-backends) result)
-      (setq suffix (org-autoexport-get-suffix backend-name))
-      (setq result (concat result (format "Backend '%s' -> '%s'\n" backend-name suffix)))))
+  (let (suffix (result "") info name)
+    (dolist (backend-info (org-autoexport-get-backend-info) result)
+      (setq name (car (string-split backend-info)))
+      (setq suffix (org-autoexport-get-suffix name))
+      (setq result (concat result (format "Backend '%s' -> '%s'\n" name suffix)))))
 #+end_src
 
 The value of =result= is:
 
 #+RESULTS: test-suffixes
 : Backend 'gfm' -> 'md'
-: Backend 'html' -> 'html'
+: Backend 'pandoc' -> 'pandoc'
 
 Next we need a function to look up the backend object given its name,
 defaulting to =nil= if not found:
@@ -433,7 +442,7 @@ Does it work?
 #+name: test-lookup
 #+begin_src elisp
   (let ((result "") found)
-    (dolist (name '("gfm" "html" "md" "latex" "docx") result)
+    (dolist (name '("gfm" "html" "md" "latex" "pandoc" "docx") result)
       (cond ((org-autoexport-get-backend name)
              (setq found "found"))
             (t
@@ -448,6 +457,7 @@ The value of =result= is:
 : Backend 'html' found
 : Backend 'md' found
 : Backend 'latex' found
+: Backend 'pandoc' found
 : Backend 'docx' not found
 
 We also need a way to determine what filename to use when exporting.  This
@@ -489,25 +499,35 @@ Here's the function which puts it all together, and does the exporting:
     "Export the current org file to one or more backends if required.
 
   The backends are listed in the #+auto_export: directives.  If a backend
-  is unknown, a warning is written to the *Warnings* buffer.
+  or export function is unknown, a warning is written to the *Warnings* buffer.
 
   Buffer restrictions are ignored when autoexporting."
     (interactive)
-    (let (backend suffix path msg)
-      (save-restriction
-        (save-mark-and-excursion
-          (widen)
-          (dolist (backend-name (org-autoexport-get-backends))
-            (setq suffix (org-autoexport-get-suffix backend-name))
-            (setq backend (org-autoexport-get-backend backend-name))
-            (setq path (concat (org-autoexport-get-filename) "." suffix))
-            (cond (backend
-                   (setq msg (format "Exporting %s to '%s'" backend-name path))
-                   (message "%s..." msg)
-                   (org-export-to-file backend path nil)
-                   (message "%s...done" msg))
+    (save-restriction
+      (save-mark-and-excursion
+        (widen)
+        (let (backend suffix path msg name func)
+          (dolist (backend-info (org-autoexport-get-backend-info))
+            (setq name (car (string-split backend-info)))
+            (setq func (cadr (string-split backend-info)))
+            (cond (func
+                   (setq func (format "org-%s-export-%s" name func))
+                   (if (intern-soft func)
+                       (funcall (intern func))
+                     (warn "No export function called '%s'" func)
+                     (display-buffer "*Warnings*")))
                   (t
-                   (warn "No export backend for '%s'" backend-name))))))))
+                   (setq suffix (org-autoexport-get-suffix name))
+                   (setq backend (org-autoexport-get-backend name))
+                   (setq path (concat (org-autoexport-get-filename) "." suffix))
+                   (cond (backend
+                          (setq msg (format "Exporting %s to '%s'" name path))
+                          (message "%s..." msg)
+                          (org-export-to-file backend path nil)
+                          (message "%s...done" msg))
+                         (t
+                          (warn "No export backend for '%s'" name)
+                          (display-buffer "*Warnings*"))))))))))
 #+end_src
 
 Next we need a minor autoexport mode, which (if enabled) does the
