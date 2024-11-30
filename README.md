@@ -52,6 +52,8 @@ If want to suppress export for particular files (e.g., files included in other f
 # End:
 ```
 
+**Warning:** This package currently only works with exporters that export to a single format. Some exporters (e.g., [ox-pandoc](https://github.com/kawabata/ox-pandoc)) export to many different formats, using their own custom export functions instead of `org-export-to-file()`, and as a result won't work correctly with `org-autoexport`. The particular case of `ox-pandoc` is supported by another package: [org-auto-export-pandoc](https://github.com/Y0ngg4n/org-auto-export-pandoc).
+
 
 <a id="install"></a>
 
@@ -79,7 +81,7 @@ Autoexport mode adds an `AutoExp` indicator to the mode line to show that it's a
 
 # Contributing
 
-You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems or suggestions [here](https://todo.sr.ht/~zondo/org-autoexport).
+You can find the source repo on [sourcehut](https://git.sr.ht/~zondo/org-autoexport). Report any problems or suggestions [here](https://todo.sr.ht/~zondo/org-autoexport), or you can email me directly at [zondo42@gmail.com](mailto:zondo42@gmail.com).
 
 
 <a id="license"></a>
