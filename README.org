@@ -417,10 +417,11 @@ Here's a function to get the backend information, using
   This is the list of items declared by #+auto_export:
   keywords in the org file.  Each item is in the format
 
-      NAME [FUNCTION]
+      NAME [FORMAT]
 
-  where NAME is the backend name and the optional FUNCTION is the suffix
-  of a custom export function."
+  where NAME is the backend name and the optional FORMAT is the output
+  format required.  If FORMAT is not specified, it's assumed that the
+  format is the same as the backend name."
     (cdar (org-collect-keywords '("AUTO_EXPORT"))))
 #+end_src
 
@@ -434,7 +435,7 @@ We can test that on the current file:
 Here's the result:
 
 #+RESULTS: test-backends
-: ("gfm" "pandoc to-rtf")
+: ("gfm" "html")
 
 *** Mapping backends to suffixes
 
