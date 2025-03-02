@@ -1,5 +1,6 @@
 - [Introduction](#intro)
 - [Usage](#usage)
+- [Pandoc](#orgd8e83eb)
 - [Installation](#install)
 - [Contributing](#contrib)
 - [License](#license)
@@ -38,7 +39,12 @@ That way, I can have the auto-export control for a bunch of org files as part of
 
 # Usage
 
-The package defines a minor mode called `org-autoexport-mode`, which (if enabled) will try to export to other formats after saving the current org file. It will perform one export for each `#+auto_export:` option it finds. You can also invoke the export process interactively, via the `org-autoexport-do-export()` function.
+The package defines a minor mode called `org-autoexport-mode`, which (if enabled) will try to export to other formats after saving the current org file. It will perform one export for each `#+auto_export:` option it finds. You can also invoke the export process interactively, via the `org-autoexport-do-export()` function. For example, this declaration would export to markdown and HTML:
+
+```org
+#+auto_export: md
+#+auto_export: html
+```
 
 By default the exported filename is based on the org filename. You can use the `EXPORT_FILE_NAME` file property to override this.
 
@@ -52,7 +58,30 @@ If want to suppress export for particular files (e.g., files included in other f
 # End:
 ```
 
-**Warning:** This package currently only works with exporters that export to a single format. Some exporters (e.g., [ox-pandoc](https://github.com/kawabata/ox-pandoc)) export to many different formats, using their own custom export functions instead of `org-export-to-file()`, and as a result won't work correctly with `org-autoexport`. The particular case of `ox-pandoc` is supported by another package: [org-auto-export-pandoc](https://github.com/Y0ngg4n/org-auto-export-pandoc).
+
+<a id="orgd8e83eb"></a>
+
+# Pandoc
+
+The [ox-pandoc](https://github.com/emacsorphanage/ox-pandoc) exporter is a special case in that it uses [pandoc](https://pandoc.org/) to export to many different formats, so there is not one single export backend. Instead, that package has a set of dedicated export functions for each format.
+
+To auto-export using the pandoc exporter you need to indicate which export format to use, with a second argument on the `#+auto_export:` line. The general form is `#+auto_export: EXPORTER FORMAT`. For example, to export to RTF using pandoc you would say:
+
+```org
+#+auto_export: pandoc rtf
+```
+
+In this case, instead of the standard backend mechanism, auto-export will look for an elisp function called `org-pandoc-export-to-rtf`.
+
+To find the complete list of formats available with pandoc, type:
+
+```
+C-h a org-pandoc-export-to-
+```
+
+The style of export done by pandoc is controlled by the variable `org-autoexport-function-template-map`. You can add support for more special-case exporters by adding to this list if their export function names can be captured by a standard template. (I don't know of any at the moment apart from pandoc, but you never know what the future holds.)
+
+The particular case of `ox-pandoc` is also supported by another package: [org-auto-export-pandoc](https://github.com/Y0ngg4n/org-auto-export-pandoc).
 
 
 <a id="install"></a>

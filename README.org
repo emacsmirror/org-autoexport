@@ -98,8 +98,8 @@ format.
 
 To auto-export using the pandoc exporter you need to indicate which export
 format to use, with a second argument on the =#+auto_export:= line.  The
-general format is =#+auto_export: EXPORTER FORMAT=.  For example, to export
-to RTF using pandoc you would say:
+general form is =#+auto_export: EXPORTER FORMAT=.  For example, to export to
+RTF using pandoc you would say:
 
 #+begin_src org :eval no
   ,#+auto_export: pandoc rtf
@@ -115,7 +115,7 @@ To find the complete list of formats available with pandoc, type:
 #+end_example
 
 The style of export done by pandoc is controlled by the variable
-~org-autoexport-function-template-map~.  You can add support more
+~org-autoexport-function-template-map~.  You can add support for more
 special-case exporters by adding to this list if their export function
 names can be captured by a standard template.  (I don't know of any at the
 moment apart from pandoc, but you never know what the future holds.)
@@ -249,6 +249,9 @@ Version history:
   Version 1.1 (30 Nov 2024):
      Deactivate mark before exporting
      Support the EXPORT_FILE_NAME file property
+
+  Version 1.2 (2 Mar 2025):
+     Add support for pandoc export
 #+end_src
 
 Package header:
@@ -607,6 +610,8 @@ Here's the function which puts it all together, and does the exporting:
 
   Buffer restrictions are ignored when autoexporting."
     (interactive)
+    (unless (derived-mode-p 'org-mode)
+      (error "This command must be run on an org-mode buffer"))
     (save-restriction
       (save-mark-and-excursion
         (widen)
