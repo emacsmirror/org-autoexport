@@ -93,8 +93,7 @@ files via local variables:
 
 The [[https://github.com/emacsorphanage/ox-pandoc][ox-pandoc]] exporter is a special case in that it uses [[https://pandoc.org/][pandoc]] to export
 to many different formats, so there is not one single export backend.
-Instead, that package has a set of dedicated export functions for each
-format.
+Instead, that package has a dedicated export function for each format.
 
 To auto-export using the pandoc exporter you need to indicate which export
 format to use, with a second argument on the =#+auto_export:= line.  The

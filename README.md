@@ -1,6 +1,6 @@
 - [Introduction](#intro)
 - [Usage](#usage)
-- [Pandoc](#orgd8e83eb)
+- [Pandoc](#org470c5c3)
 - [Installation](#install)
 - [Contributing](#contrib)
 - [License](#license)
@@ -59,11 +59,11 @@ If want to suppress export for particular files (e.g., files included in other f
 ```
 
 
-<a id="orgd8e83eb"></a>
+<a id="org470c5c3"></a>
 
 # Pandoc
 
-The [ox-pandoc](https://github.com/emacsorphanage/ox-pandoc) exporter is a special case in that it uses [pandoc](https://pandoc.org/) to export to many different formats, so there is not one single export backend. Instead, that package has a set of dedicated export functions for each format.
+The [ox-pandoc](https://github.com/emacsorphanage/ox-pandoc) exporter is a special case in that it uses [pandoc](https://pandoc.org/) to export to many different formats, so there is not one single export backend. Instead, that package has a dedicated export function for each format.
 
 To auto-export using the pandoc exporter you need to indicate which export format to use, with a second argument on the `#+auto_export:` line. The general form is `#+auto_export: EXPORTER FORMAT`. For example, to export to RTF using pandoc you would say:
 
