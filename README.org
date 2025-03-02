@@ -63,7 +63,13 @@ The package defines a minor mode called =org-autoexport-mode=, which (if
 enabled) will try to export to other formats after saving the current org
 file.  It will perform one export for each =#+auto_export:= option it finds.
 You can also invoke the export process interactively, via the
-~org-autoexport-do-export()~ function.
+~org-autoexport-do-export()~ function.  For example, this declaration would
+export to markdown and HTML:
+
+#+begin_src org :eval no
+  ,#+auto_export: md
+  ,#+auto_export: html
+#+end_src
 
 By default the exported filename is based on the org filename.  You can use
 the =EXPORT_FILE_NAME= file property to override this.
@@ -83,12 +89,39 @@ files via local variables:
 # End:
 #+end_example
 
-*Warning:* This package currently only works with exporters that export to a
-single format.  Some exporters (e.g., [[https://github.com/kawabata/ox-pandoc][ox-pandoc]]) export to many different
-formats, using their own custom export functions instead of
-=org-export-to-file()=, and as a result won't work correctly with
-=org-autoexport=.  The particular case of =ox-pandoc= is supported by another
-package: [[https://github.com/Y0ngg4n/org-auto-export-pandoc][org-auto-export-pandoc]].
+* Pandoc
+
+The [[https://github.com/emacsorphanage/ox-pandoc][ox-pandoc]] exporter is a special case in that it uses [[https://pandoc.org/][pandoc]] to export
+to many different formats, so there is not one single export backend.
+Instead, that package has a set of dedicated export functions for each
+format.
+
+To auto-export using the pandoc exporter you need to indicate which export
+format to use, with a second argument on the =#+auto_export:= line.  The
+general form is =#+auto_export: EXPORTER FORMAT=.  For example, to export to
+RTF using pandoc you would say:
+
+#+begin_src org :eval no
+  ,#+auto_export: pandoc rtf
+#+end_src
+
+In this case, instead of the standard backend mechanism, auto-export will
+look for an elisp function called ~org-pandoc-export-to-rtf~.
+
+To find the complete list of formats available with pandoc, type:
+
+#+begin_example
+  C-h a org-pandoc-export-to-
+#+end_example
+
+The style of export done by pandoc is controlled by the variable
+~org-autoexport-function-template-map~.  You can add support for more
+special-case exporters by adding to this list if their export function
+names can be captured by a standard template.  (I don't know of any at the
+moment apart from pandoc, but you never know what the future holds.)
+
+The particular case of =ox-pandoc= is also supported by another package:
+[[https://github.com/Y0ngg4n/org-auto-export-pandoc][org-auto-export-pandoc]].
 
 * Installation
   :PROPERTIES:
@@ -179,21 +212,21 @@ don't have Eldev, you will need to install it:
 Package name:
 
 #+name: pkg
-#+begin_src text
+#+begin_src text :exports none
   org-autoexport
 #+end_src
 
 Summary:
 
 #+name: summary
-#+begin_src text
+#+begin_src text :exports none
   Auto-export org file on save
 #+end_src
 
 The package description:
 
 #+name: description
-#+begin_src text
+#+begin_src text :exports none
   It is common to want to export org files to one or more other formats
   every time you save your changes.  This package this allows you to do so
   using #+auto_export: options in the org file.
@@ -202,32 +235,35 @@ The package description:
 Version:
 
 #+name: version
-#+begin_src text
+#+begin_src text :exports none
   1.1
 #+end_src
 
 Version history:
 
 #+name: history
-#+begin_src text
+#+begin_src text :exports none
   Version 1.0 (22 Aug 2024):
      First release
 
   Version 1.1 (30 Nov 2024):
      Deactivate mark before exporting
      Support the EXPORT_FILE_NAME file property
+
+  Version 1.2 (2 Mar 2025):
+     Add support for pandoc export
 #+end_src
 
 Package header:
 
 #+name: header
-#+begin_src text
+#+begin_src text :exports none
   Author: Glenn Hutchings <zondo42@gmail.com>
   Maintainer: Glenn Hutchings <zondo42@gmail.com>
   URL: https://git.sr.ht/~zondo/<<pkg>>
   Version: <<version>>
   Keywords: org, wp
-  Package-Requires: ((emacs "28.1") (org "9.6"))
+  Package-Requires: ((emacs "29.1") (org "9.6"))
 
   This file is not part of GNU Emacs.
 #+end_src
@@ -263,6 +299,8 @@ The tangled package file:
 
   <<suffix-map>>
 
+  <<template-map>>
+
   <<get-backends>>
 
   <<get-backend>>
@@ -270,6 +308,8 @@ The tangled package file:
   <<get-suffix>>
 
   <<get-filename>>
+
+  <<get-template>>
 
   ;;;###autoload
   <<do-export>>
@@ -312,7 +352,7 @@ Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/mas
      (find-file "README.org"))
 
     (it "finds the backend names in README.org"
-        (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
+        (expect (org-autoexport-get-backend-info) :to-equal '("gfm" "html")))
 
     (it "finds the correct filename"
         (expect (org-autoexport-get-filename) :to-equal "README"))
@@ -325,42 +365,66 @@ Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/mas
     (it "finds the backend from its name"
         (expect (org-autoexport-get-backend "html") :not :to-be nil)
         (expect (org-autoexport-get-backend "latex") :not :to-be nil)
-        (expect (org-autoexport-get-backend "nosuch") :to-be nil)))
+        (expect (org-autoexport-get-backend "nosuch") :to-be nil))
+
+    (it "finds the function template from its name"
+        (expect (org-autoexport-get-function-template "html") :to-be nil)
+        (expect (org-autoexport-get-function-template "pandoc") :not :to-be nil)))
 #+end_src
 
 ** Implementation
+
+*** Outline
 
 Each of the =#+auto_export:= statements declares an org export /backend/ that
 does the export.  With that in mind, here's an outline of the export
 algorithm:
 
-1. Get the export backend names from the =#+auto_export:= statements in the
-   current file.
+1. Get the export backend information from the =#+auto_export:= statements in
+   the current file, in the form =name [format]=, where =name= is the name of
+   the backend (e.g., =html=) and the optional =format=, if given, indicates
+   that a special-case function is used to do the export (see next step).
 
 2. For each backend, do this:
 
-   - Find the suffix of the file to export to.  For most backends, that's
-     just the name of the backend.  But there are special cases: for
-     github-flavoured markdown the backend is ~'gfm~ but the suffix is =md=.
+   - Extract the name and optional format.
 
-   - Create the export filename by concatenating the current file's prefix
-     with the export suffix.
+   - If no format is specified (standard case):
 
-   - Get the export backend object from its string representation.
+     - Find the suffix of the file to export to.  For most backends, that's
+       just the name of the backend.  But there are special cases: for
+       github-flavoured markdown the backend is ~'gfm~ but the suffix is =md=.
+     - Create the export filename by concatenating the current file's prefix
+       with the export suffix.
+     - Get the export backend object from its string representation.
+     - If the backend is found, do the export.  Otherwise, warn the user.
 
-   - If the backend is found, do the export.  Otherwise, warn the user.
+   - If a format is specified (special cases):
+
+     - Find the function template given the backend name.
+     - Form the export function name from the template and format.
+     - If the function is found, do the export.  Otherwise, warn the user.
 
 3. Er... that's it.
 
-Here's a function to get the backend names, using ~org-collect-keywords~:
+*** Getting backend info
+
+Here's a function to get the backend information, using
+~org-collect-keywords~:
 
 #+name: get-backends
 #+begin_src elisp :results verbatim :results silent
-  (defun org-autoexport-get-backends ()
-    "Get a list of backend names to auto-export from the current file.
+  (defun org-autoexport-get-backend-info ()
+    "Get a list of auto-export backend information from the current file.
 
-  This is the list of backend names declared by #+auto_export:
-  keywords in the org file."
+  This is the list of items declared by #+auto_export:
+  keywords in the org file.  Each item is in the format
+
+      NAME [FORMAT]
+
+  where NAME is the backend name and the optional FORMAT is the output
+  format required.  If FORMAT is not specified, it's assumed that the
+  format is the same as the backend name."
     (cdar (org-collect-keywords '("AUTO_EXPORT"))))
 #+end_src
 
@@ -368,13 +432,15 @@ We can test that on the current file:
 
 #+name: test-backends
 #+begin_src elisp :results verbatim
-  (org-autoexport-get-backends)
+  (org-autoexport-get-backend-info)
 #+end_src
 
 Here's the result:
 
 #+RESULTS: test-backends
 : ("gfm" "html")
+
+*** Mapping backends to suffixes
 
 To map the backend names to the right suffix, we'll use an alist which
 lists the special cases:
@@ -386,8 +452,8 @@ lists the special cases:
       ("latex" . "tex"))
     "Mapping of export backend name to file suffix.
 
-  Most of the time, the name and suffix are the same.  This
-  variable lists the special cases where they are different.")
+  Most of the time, the name and suffix are the same.  This variable lists
+  the special cases where they are different.")
 #+end_src
 
 And a function which uses this, defaulting to the backend name:
@@ -406,17 +472,20 @@ Let's test it:
 
 #+name: test-suffixes
 #+begin_src elisp
-  (let (suffix (result ""))
-    (dolist (backend-name (org-autoexport-get-backends) result)
-      (setq suffix (org-autoexport-get-suffix backend-name))
-      (setq result (concat result (format "Backend '%s' -> '%s'\n" backend-name suffix)))))
+  (let (suffix (result "") info name)
+    (dolist (backend-info (org-autoexport-get-backend-info) result)
+      (setq name (car (string-split backend-info)))
+      (setq suffix (org-autoexport-get-suffix name))
+      (setq result (concat result (format "Backend '%s' -> '%s'\n" name suffix)))))
 #+end_src
 
 The value of =result= is:
 
 #+RESULTS: test-suffixes
 : Backend 'gfm' -> 'md'
-: Backend 'html' -> 'html'
+: Backend 'pandoc' -> 'pandoc'
+
+*** Looking up backend objects
 
 Next we need a function to look up the backend object given its name,
 defaulting to =nil= if not found:
@@ -433,7 +502,7 @@ Does it work?
 #+name: test-lookup
 #+begin_src elisp
   (let ((result "") found)
-    (dolist (name '("gfm" "html" "md" "latex" "docx") result)
+    (dolist (name '("gfm" "html" "md" "latex" "pandoc" "docx") result)
       (cond ((org-autoexport-get-backend name)
              (setq found "found"))
             (t
@@ -448,7 +517,10 @@ The value of =result= is:
 : Backend 'html' found
 : Backend 'md' found
 : Backend 'latex' found
+: Backend 'pandoc' found
 : Backend 'docx' not found
+
+*** Getting the export filename
 
 We also need a way to determine what filename to use when exporting.  This
 will usually be the filename of the org file, but there is a property
@@ -481,6 +553,51 @@ Testing:
 #+RESULTS: test-filename
 : README
 
+*** Supporting pandoc
+
+To support pandoc, we need an alist of backend name vs export function
+template:
+
+#+name: template-map
+#+begin_src elisp :results silent
+  (defconst org-autoexport-function-template-map
+    '(("pandoc" . "org-pandoc-export-to-%s"))
+    "Mapping of export backend name to export function template.
+
+  These are special cases that use explicit export functions instead of
+  backends.  Each template must contain a placeholder for the export
+  format name.")
+#+end_src
+
+Next we need a function to look up the backend object given its name,
+defaulting to =nil= if not found:
+
+#+name: get-template
+#+begin_src elisp :results silent
+  (defun org-autoexport-get-function-template (backend-name)
+    "Return the function template used to autoexport using BACKEND-NAME."
+    (alist-get backend-name org-autoexport-function-template-map nil nil 'equal))
+#+end_src
+
+Let's test it:
+
+#+name: test-templates
+#+begin_src elisp
+  (let (suffix (result "") info name)
+    (dolist (backend-info (org-autoexport-get-backend-info) result)
+      (setq name (car (string-split backend-info)))
+      (setq template (org-autoexport-get-function-template name))
+      (setq result (concat result (format "Backend '%s' -> %s\n" name template)))))
+#+end_src
+
+The value of =result= is:
+
+#+RESULTS: test-templates
+: Backend 'gfm' -> nil
+: Backend 'pandoc' -> org-pandoc-export-to-%s
+
+*** The main export function
+
 Here's the function which puts it all together, and does the exporting:
 
 #+name: do-export
@@ -489,26 +606,50 @@ Here's the function which puts it all together, and does the exporting:
     "Export the current org file to one or more backends if required.
 
   The backends are listed in the #+auto_export: directives.  If a backend
-  is unknown, a warning is written to the *Warnings* buffer.
+  or export function is unknown, a warning is written to the *Warnings* buffer.
 
   Buffer restrictions are ignored when autoexporting."
     (interactive)
-    (let (backend suffix path msg)
-      (save-restriction
-        (save-mark-and-excursion
-          (widen)
-          (dolist (backend-name (org-autoexport-get-backends))
-            (setq suffix (org-autoexport-get-suffix backend-name))
-            (setq backend (org-autoexport-get-backend backend-name))
-            (setq path (concat (org-autoexport-get-filename) "." suffix))
-            (cond (backend
-                   (setq msg (format "Exporting %s to '%s'" backend-name path))
-                   (message "%s..." msg)
-                   (org-export-to-file backend path nil)
-                   (message "%s...done" msg))
+    (unless (derived-mode-p 'org-mode)
+      (error "This command must be run on an org-mode buffer"))
+    (save-restriction
+      (save-mark-and-excursion
+        (widen)
+        (let (backend suffix path msg name func fmt tmpl)
+          (dolist (backend-info (org-autoexport-get-backend-info))
+            (setq name (car (string-split backend-info)))
+            (setq fmt (cadr (string-split backend-info)))
+            (setq tmpl (org-autoexport-get-function-template name))
+            (cond (tmpl
+                   ;; Special-case export function.
+                   (if (not fmt)
+                       (warn "Export to %s requires a format argument" name)
+                     (setq func (format tmpl fmt))
+                     (if (intern-soft func)
+                         (funcall (intern func))
+                       (warn "No %s export function called '%s'" name func))))
                   (t
-                   (warn "No export backend for '%s'" backend-name))))))))
+                   ;; Standard backend using org-export-to-file.
+                   (if fmt
+                       (warn "Export to %s does not require a format argument" name)
+                     (setq suffix (org-autoexport-get-suffix name))
+                     (setq backend (org-autoexport-get-backend name))
+                     (setq path (concat (org-autoexport-get-filename) "." suffix))
+                     (if (not backend)
+                         (warn "No export backend for '%s'" name)
+                       (setq msg (format "Exporting %s to '%s'" name path))
+                       (message "%s..." msg)
+                       (org-export-to-file backend path nil)
+                       (message "%s...done" msg))))))))))
 #+end_src
+
+Here's how to test it:
+
+#+begin_src elisp :results silent
+  (org-autoexport-do-export)
+#+end_src
+
+*** Autoexport minor mode
 
 Next we need a minor autoexport mode, which (if enabled) does the
 exporting.  The idea here is to have this turned on in ~org-mode-hook~.

@@ -8,7 +8,7 @@
    (find-file "README.org"))
 
   (it "finds the backend names in README.org"
-      (expect (org-autoexport-get-backends) :to-equal '("gfm" "html")))
+      (expect (org-autoexport-get-backend-info) :to-equal '("gfm" "html")))
 
   (it "finds the correct filename"
       (expect (org-autoexport-get-filename) :to-equal "README"))
@@ -21,4 +21,8 @@
   (it "finds the backend from its name"
       (expect (org-autoexport-get-backend "html") :not :to-be nil)
       (expect (org-autoexport-get-backend "latex") :not :to-be nil)
-      (expect (org-autoexport-get-backend "nosuch") :to-be nil)))
+      (expect (org-autoexport-get-backend "nosuch") :to-be nil))
+
+  (it "finds the function template from its name"
+      (expect (org-autoexport-get-function-template "html") :to-be nil)
+      (expect (org-autoexport-get-function-template "pandoc") :not :to-be nil)))
