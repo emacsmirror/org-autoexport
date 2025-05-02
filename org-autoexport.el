@@ -3,7 +3,7 @@
 ;; Author: Glenn Hutchings <zondo42@gmail.com>
 ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
 ;; URL: https://git.sr.ht/~zondo/org-autoexport
-;; Version: 1.1
+;; Version: 1.3
 ;; Keywords: org, wp
 ;; Package-Requires: ((emacs "29.1") (org "9.6"))
 ;; 
@@ -46,6 +46,12 @@
 ;; Version 1.1 (30 Nov 2024):
 ;;    Deactivate mark before exporting
 ;;    Support the EXPORT_FILE_NAME file property
+;; 
+;; Version 1.2 (2 Mar 2025):
+;;    Add support for pandoc export
+;; 
+;; Version 1.3 (2 May 2025):
+;;    Don't strip directories from EXPORT_FILE_NAME
 
 ;;; Code:
 
