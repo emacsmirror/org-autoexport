@@ -119,6 +119,8 @@ or export function is unknown, a warning is written to the *Warnings* buffer.
 
 Buffer restrictions are ignored when autoexporting."
   (interactive)
+  (unless (derived-mode-p 'org-mode)
+    (error "This command must be run on an org-mode buffer"))
   (save-restriction
     (save-mark-and-excursion
       (widen)
