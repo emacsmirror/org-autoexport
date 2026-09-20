@@ -563,7 +563,8 @@ template:
 #+name: template-map
 #+begin_src elisp :results silent
   (defconst org-autoexport-function-template-map
-    '(("pandoc" . "org-pandoc-export-to-%s"))
+    '(("pandoc" . "org-pandoc-export-to-%s")
+      ("latex" . "org-latex-export-to-%s"))
     "Mapping of export backend name to export function template.
 
   These are special cases that use explicit export functions instead of
@@ -622,27 +623,28 @@ Here's the function which puts it all together, and does the exporting:
             (setq name (car (string-split backend-info)))
             (setq fmt (cadr (string-split backend-info)))
             (setq tmpl (org-autoexport-get-function-template name))
-            (cond (tmpl
-                   ;; Special-case export function.
-                   (if (not fmt)
-                       (warn "Export to %s requires a format argument" name)
+            (cond (fmt
+                   ;; Format specified: special-case export function, needs
+                   ;; template.
+                   (if (not tmpl)
+                       (warn "Export to '%s %s' requires a '%s' entry in '%s'"
+                             name fmt name "org-autoexport-function-template-map")
                      (setq func (format tmpl fmt))
                      (if (intern-soft func)
                          (funcall (intern func))
                        (warn "No %s export function called '%s'" name func))))
                   (t
-                   ;; Standard backend using org-export-to-file.
-                   (if fmt
-                       (warn "Export to %s does not require a format argument" name)
-                     (setq suffix (org-autoexport-get-suffix name))
-                     (setq backend (org-autoexport-get-backend name))
-                     (setq path (concat (org-autoexport-get-filename) "." suffix))
-                     (if (not backend)
-                         (warn "No export backend for '%s'" name)
-                       (setq msg (format "Exporting %s to '%s'" name path))
-                       (message "%s..." msg)
-                       (org-export-to-file backend path nil)
-                       (message "%s...done" msg))))))))))
+                   ;; No format specified: standard backend using
+                   ;; org-export-to-file.
+                   (setq suffix (org-autoexport-get-suffix name))
+                   (setq backend (org-autoexport-get-backend name))
+                   (setq path (concat (org-autoexport-get-filename) "." suffix))
+                   (if (not backend)
+                       (warn "No export backend for '%s'" name)
+                     (setq msg (format "Exporting %s to '%s'" name path))
+                     (message "%s..." msg)
+                     (org-export-to-file backend path nil)
+                     (message "%s...done" msg)))))))))
 #+end_src
 
 Here's how to test it:
