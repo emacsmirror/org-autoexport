@@ -71,13 +71,55 @@ export to markdown and HTML:
   ,#+auto_export: html
 #+end_src
 
+** Multi-format backends
+   :PROPERTIES:
+   :CUSTOM_ID: multiformat
+   :END:
+
+By default, export is done by finding the export backend from the file
+suffix, and calling =org-export-to-file=.  But some export backends export to
+more than one format, and so they don't use this function; instead, they
+define their own custom export functions.  For example, the [[https://github.com/emacsorphanage/ox-pandoc][ox-pandoc]]
+exporter uses [[https://pandoc.org/][pandoc]] to export to many different formats.
+
+To auto-export to these formats, you need to specify which format using a
+second argument on the =#+auto_export:= line.  The general form is
+=#+auto_export: BACKEND FORMAT=.  For example, to export to RTF using pandoc
+you would say:
+
+#+begin_src org :eval no
+  ,#+auto_export: pandoc rtf
+#+end_src
+
+In this case, instead of the standard backend mechanism, auto-export will
+look for an elisp function called ~org-pandoc-export-to-rtf~.  Another
+example of this is if you want to export to PDF, since it can't be exported
+directly, but can be done via LaTeX using ~org-latex-export-to-pdf~:
+
+#+begin_src org :eval no
+  ,#+auto_export: latex pdf
+#+end_src
+
+The general format of the function searched for is
+=org-BACKEND-export-to-FORMAT=, and you can find the complete list of export
+functions in this format by evaluating this elisp function:
+
+#+begin_src elisp :results silent
+  (apropos "org-.+-export-to-[-a-z]+$")
+#+end_src
+
+** Exported filename
+   :PROPERTIES:
+   :CUSTOM_ID: filename
+   :END:
+
 By default the exported filename is based on the org filename.  You can use
 the =EXPORT_FILE_NAME= file property to override this.
 
-Auto-export will fail if the requested export backend can't be found, and
-you'll get a popup warning buffer to that effect.  In that case you will
-need to install and load the export backend first (for example, to get the
-=gfm= export mentioned above, you will need to load the [[https://github.com/larstvei/ox-gfm][ox-gfm]] package).
+** Suppressing export
+   :PROPERTIES:
+   :CUSTOM_ID: suppressing
+   :END:
 
 If want to suppress export for particular files (e.g., files included in
 other files via =#+setupfile:=) you can turn autoexport mode off for those
@@ -89,38 +131,16 @@ files via local variables:
 # End:
 #+end_example
 
-* Pandoc
+** Errors
+   :PROPERTIES:
+   :CUSTOM_ID: errors
+   :END:
 
-The [[https://github.com/emacsorphanage/ox-pandoc][ox-pandoc]] exporter is a special case in that it uses [[https://pandoc.org/][pandoc]] to export
-to many different formats, so there is not one single export backend.
-Instead, that package has a dedicated export function for each format.
-
-To auto-export using the pandoc exporter you need to indicate which export
-format to use, with a second argument on the =#+auto_export:= line.  The
-general form is =#+auto_export: EXPORTER FORMAT=.  For example, to export to
-RTF using pandoc you would say:
-
-#+begin_src org :eval no
-  ,#+auto_export: pandoc rtf
-#+end_src
-
-In this case, instead of the standard backend mechanism, auto-export will
-look for an elisp function called ~org-pandoc-export-to-rtf~.
-
-To find the complete list of formats available with pandoc, type:
-
-#+begin_example
-  C-h a org-pandoc-export-to-
-#+end_example
-
-The style of export done by pandoc is controlled by the variable
-~org-autoexport-function-template-map~.  You can add support for more
-special-case exporters by adding to this list if their export function
-names can be captured by a standard template.  (I don't know of any at the
-moment apart from pandoc, but you never know what the future holds.)
-
-The particular case of =ox-pandoc= is also supported by another package:
-[[https://github.com/Y0ngg4n/org-auto-export-pandoc][org-auto-export-pandoc]].
+Auto-export will fail if the required packages and support tools (e.g., the
+requested export backend) can't be found, and you'll get a popup warning
+buffer to that effect.  In that case you will need to install and load the
+packages first (for example, to get the =gfm= export mentioned above, you
+will need to load the [[https://github.com/larstvei/ox-gfm][ox-gfm]] package).
 
 * Installation
   :PROPERTIES:
@@ -545,51 +565,6 @@ Testing:
 
 #+RESULTS: test-filename
 : README
-
-*** Supporting pandoc
-
-To support pandoc, we need an alist of backend name vs export function
-template:
-
-#+name: template-map
-#+begin_src elisp :results silent
-  (defconst org-autoexport-function-template-map
-    '(("pandoc" . "org-pandoc-export-to-%s")
-      ("latex" . "org-latex-export-to-%s"))
-    "Mapping of export backend name to export function template.
-
-  These are special cases that use explicit export functions instead of
-  backends.  Each template must contain a placeholder for the export
-  format name.")
-#+end_src
-
-Next we need a function to look up the backend object given its name,
-defaulting to =nil= if not found:
-
-#+name: get-template
-#+begin_src elisp :results silent
-  (defun org-autoexport-get-function-template (backend-name)
-    "Return the function template used to autoexport using BACKEND-NAME."
-    (alist-get backend-name org-autoexport-function-template-map nil nil 'equal))
-#+end_src
-
-Let's test it:
-
-#+name: test-templates
-#+begin_src elisp
-  (let (suffix (result "") info name)
-    (dolist (backend-info (org-autoexport-get-backend-info) result)
-      (setq name (car (string-split backend-info)))
-      (setq template (org-autoexport-get-function-template name))
-      (setq result (concat result (format "Backend '%s' -> %s\n" name template)))))
-#+end_src
-
-The value of =result= is:
-
-#+RESULTS: test-templates
-: Backend 'gfm' -> nil
-: Backend 'pandoc' -> org-pandoc-export-to-%s
-
 *** The main export function
 
 Here's the function which puts it all together, and does the exporting:
