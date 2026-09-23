@@ -455,18 +455,25 @@ Here's the result:
 
 *** Mapping backends to suffixes
 
-To map the backend names to the right suffix, we'll use an alist which
-lists the special cases:
+To map the backend names to the right suffix, we'll use a custom variable
+which lists the special cases:
 
 #+name: suffix-map
 #+begin_src elisp :results silent
-  (defconst org-autoexport-backend-suffix-map
+  (defgroup org-autoexport nil
+    "Auto-exporting org files when saving."
+    :group 'org)
+
+  (defcustom org-autoexport-backend-suffix-map
     '(("gfm" . "md")
       ("latex" . "tex"))
-    "Mapping of export backend name to file suffix.
+    "A list of alists that map export backends to file suffix.
 
-  Most of the time, the name and suffix are the same.  This variable lists
-  the special cases where they are different.")
+  Most of the time, the backend name and suffix are the same.  This variable
+  lists the special cases where they are different."
+    :type '(choice (repeat
+                    (cons (string :tag "Backend name")
+                          (string :tag "Suffix")))))
 #+end_src
 
 And a function which uses this, defaulting to the backend name:
@@ -496,7 +503,7 @@ The value of =result= is:
 
 #+RESULTS: test-suffixes
 : Backend 'gfm' -> 'md'
-: Backend 'pandoc' -> 'pandoc'
+: Backend 'html' -> 'html'
 
 *** Looking up backend objects
 
@@ -631,11 +638,6 @@ exporting.  The idea here is to have this turned on in ~org-mode-hook~.
 #+end_src
 
 And that's it.
-
-** Todo list
-
-- TODO: Add a customization group
-- TODO: Add more package tests
 
 * Epilogue                                                         :noexport:
 
