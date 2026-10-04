@@ -121,8 +121,8 @@ the =EXPORT_FILE_NAME= file property to override this.
    :CUSTOM_ID: suppressing
    :END:
 
-If want to suppress export for particular files (e.g., files included in
-other files via =#+setupfile:=) you can turn autoexport mode off for those
+If you want to suppress export for particular files (e.g., files included
+in other files via =#+setupfile:=) you can turn autoexport mode off for those
 files via local variables:
 
 #+begin_example
