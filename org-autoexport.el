@@ -9,7 +9,7 @@
 ;; 
 ;; This file is not part of GNU Emacs.
 
-;; Copyright (c) 2025, Glenn Hutchings
+;; Copyright (c) 2026, Glenn Hutchings
 ;; 
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions are met:
@@ -58,21 +58,20 @@
 (require 'org)
 (require 'ox)
 
-(defconst org-autoexport-backend-suffix-map
+(defgroup org-autoexport nil
+  "Auto-exporting org files when saving."
+  :group 'org)
+
+(defcustom org-autoexport-backend-suffix-map
   '(("gfm" . "md")
     ("latex" . "tex"))
-  "Mapping of export backend name to file suffix.
+  "A list of alists that map export backends to file suffix.
 
-Most of the time, the name and suffix are the same.  This variable lists
-the special cases where they are different.")
-
-(defconst org-autoexport-function-template-map
-  '(("pandoc" . "org-pandoc-export-to-%s"))
-  "Mapping of export backend name to export function template.
-
-These are special cases that use explicit export functions instead of
-backends.  Each template must contain a placeholder for the export
-format name.")
+Most of the time, the backend name and suffix are the same.  This variable
+lists the special cases where they are different."
+  :type '(choice (repeat
+                  (cons (string :tag "Backend name")
+                        (string :tag "Suffix")))))
 
 (defun org-autoexport-get-backend-info ()
   "Get a list of auto-export backend information from the current file.
@@ -112,10 +111,6 @@ basename of the current buffer's filename."
           (t
            (error "Buffer has no associated filename or EXPORT_FILE_NAME property")))))
 
-(defun org-autoexport-get-function-template (backend-name)
-  "Return the function template used to autoexport using BACKEND-NAME."
-  (alist-get backend-name org-autoexport-function-template-map nil nil 'equal))
-
 ;;;###autoload
 (defun org-autoexport-do-export ()
   "Export the current org file to one or more backends if required.
@@ -130,32 +125,28 @@ Buffer restrictions are ignored when autoexporting."
   (save-restriction
     (save-mark-and-excursion
       (widen)
-      (let (backend suffix path msg name func fmt tmpl)
+      (let (backend suffix path msg name func fmt)
         (dolist (backend-info (org-autoexport-get-backend-info))
           (setq name (car (string-split backend-info)))
           (setq fmt (cadr (string-split backend-info)))
-          (setq tmpl (org-autoexport-get-function-template name))
-          (cond (tmpl
-                 ;; Special-case export function.
-                 (if (not fmt)
-                     (warn "Export to %s requires a format argument" name)
-                   (setq func (format tmpl fmt))
-                   (if (intern-soft func)
-                       (funcall (intern func))
-                     (warn "No %s export function called '%s'" name func))))
+          (cond (fmt
+                 ;; Format specified: special-case export function.
+                 (setq func (format "org-%s-export-to-%s" name fmt))
+                 (if (intern-soft func)
+                     (funcall (intern func))
+                   (warn "No %s export function called '%s'" name func)))
                 (t
-                 ;; Standard backend using org-export-to-file.
-                 (if fmt
-                     (warn "Export to %s does not require a format argument" name)
-                   (setq suffix (org-autoexport-get-suffix name))
-                   (setq backend (org-autoexport-get-backend name))
-                   (setq path (concat (org-autoexport-get-filename) "." suffix))
-                   (if (not backend)
-                       (warn "No export backend for '%s'" name)
-                     (setq msg (format "Exporting %s to '%s'" name path))
-                     (message "%s..." msg)
-                     (org-export-to-file backend path nil)
-                     (message "%s...done" msg))))))))))
+                 ;; No format specified: standard backend using
+                 ;; org-export-to-file.
+                 (setq suffix (org-autoexport-get-suffix name))
+                 (setq backend (org-autoexport-get-backend name))
+                 (setq path (concat (org-autoexport-get-filename) "." suffix))
+                 (if (not backend)
+                     (warn "No export backend for '%s'" name)
+                   (setq msg (format "Exporting %s to '%s'" name path))
+                   (message "%s..." msg)
+                   (org-export-to-file backend path nil)
+                   (message "%s...done" msg)))))))))
 
 ;;;###autoload
 (define-minor-mode org-autoexport-mode

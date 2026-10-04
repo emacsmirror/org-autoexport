@@ -1,6 +1,9 @@
 - [Introduction](#intro)
 - [Usage](#usage)
-- [Pandoc](#org470c5c3)
+  - [Multi-format backends](#multiformat)
+  - [Exported filename](#filename)
+  - [Suppressing export](#suppressing)
+  - [Errors](#errors)
 - [Installation](#install)
 - [Contributing](#contrib)
 - [License](#license)
@@ -46,11 +49,44 @@ The package defines a minor mode called `org-autoexport-mode`, which (if enabled
 #+auto_export: html
 ```
 
+
+<a id="multiformat"></a>
+
+## Multi-format backends
+
+By default, export is done by finding the export backend from the file suffix, and calling `org-export-to-file`. But some export backends export to more than one format, and so they don't use this function; instead, they define their own custom export functions. For example, the [ox-pandoc](https://github.com/emacsorphanage/ox-pandoc) exporter uses [pandoc](https://pandoc.org/) to export to many different formats.
+
+To auto-export to these formats, you need to specify which format using a second argument on the `#+auto_export:` line. The general form is `#+auto_export: BACKEND FORMAT`. For example, to export to RTF using pandoc you would say:
+
+```org
+#+auto_export: pandoc rtf
+```
+
+In this case, instead of the standard backend mechanism, auto-export will look for an elisp function called `org-pandoc-export-to-rtf`. Another example of this is if you want to export to PDF, since it can't be exported directly, but can be done via LaTeX using `org-latex-export-to-pdf`:
+
+```org
+#+auto_export: latex pdf
+```
+
+The general format of the function searched for is `org-BACKEND-export-to-FORMAT`, and you can find the complete list of export functions in this format by evaluating this elisp function:
+
+```elisp
+(apropos "org-.+-export-to-[-a-z]+$")
+```
+
+
+<a id="filename"></a>
+
+## Exported filename
+
 By default the exported filename is based on the org filename. You can use the `EXPORT_FILE_NAME` file property to override this.
 
-Auto-export will fail if the requested export backend can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the export backend first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
 
-If want to suppress export for particular files (e.g., files included in other files via `#+setupfile:`) you can turn autoexport mode off for those files via local variables:
+<a id="suppressing"></a>
+
+## Suppressing export
+
+If you want to suppress export for particular files (e.g., files included in other files via `#+setupfile:`) you can turn autoexport mode off for those files via local variables:
 
 ```
 # Local Variables:
@@ -59,29 +95,11 @@ If want to suppress export for particular files (e.g., files included in other f
 ```
 
 
-<a id="org470c5c3"></a>
+<a id="errors"></a>
 
-# Pandoc
+## Errors
 
-The [ox-pandoc](https://github.com/emacsorphanage/ox-pandoc) exporter is a special case in that it uses [pandoc](https://pandoc.org/) to export to many different formats, so there is not one single export backend. Instead, that package has a dedicated export function for each format.
-
-To auto-export using the pandoc exporter you need to indicate which export format to use, with a second argument on the `#+auto_export:` line. The general form is `#+auto_export: EXPORTER FORMAT`. For example, to export to RTF using pandoc you would say:
-
-```org
-#+auto_export: pandoc rtf
-```
-
-In this case, instead of the standard backend mechanism, auto-export will look for an elisp function called `org-pandoc-export-to-rtf`.
-
-To find the complete list of formats available with pandoc, type:
-
-```
-C-h a org-pandoc-export-to-
-```
-
-The style of export done by pandoc is controlled by the variable `org-autoexport-function-template-map`. You can add support for more special-case exporters by adding to this list if their export function names can be captured by a standard template. (I don't know of any at the moment apart from pandoc, but you never know what the future holds.)
-
-The particular case of `ox-pandoc` is also supported by another package: [org-auto-export-pandoc](https://github.com/Y0ngg4n/org-auto-export-pandoc).
+Auto-export will fail if the required packages and support tools (e.g., the requested export backend) can't be found, and you'll get a popup warning buffer to that effect. In that case you will need to install and load the packages first (for example, to get the `gfm` export mentioned above, you will need to load the [ox-gfm](https://github.com/larstvei/ox-gfm) package).
 
 
 <a id="install"></a>

@@ -21,8 +21,4 @@
   (it "finds the backend from its name"
       (expect (org-autoexport-get-backend "html") :not :to-be nil)
       (expect (org-autoexport-get-backend "latex") :not :to-be nil)
-      (expect (org-autoexport-get-backend "nosuch") :to-be nil))
-
-  (it "finds the function template from its name"
-      (expect (org-autoexport-get-function-template "html") :to-be nil)
-      (expect (org-autoexport-get-function-template "pandoc") :not :to-be nil)))
+      (expect (org-autoexport-get-backend "nosuch") :to-be nil)))
