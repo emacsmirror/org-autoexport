@@ -322,8 +322,14 @@ The tangled package file:
   (require 'org)
   (require 'ox)
 
+  ;; Customisation variables.
+  <<custom-group>>
+
   <<suffix-map>>
 
+  <<export-background>>
+
+  ;; Functions.
   <<get-backends>>
 
   <<get-backend>>
@@ -461,12 +467,15 @@ Here's the result:
 To map the backend names to the right suffix, we'll use a custom variable
 which lists the special cases:
 
-#+name: suffix-map
+#+name: custom-group
 #+begin_src elisp :results silent
   (defgroup org-autoexport nil
     "Auto-exporting org files when saving."
     :group 'org)
+#+end_src
 
+#+name: suffix-map
+#+begin_src elisp :results silent
   (defcustom org-autoexport-backend-suffix-map
     '(("gfm" . "md")
       ("latex" . "tex"))
@@ -474,6 +483,7 @@ which lists the special cases:
 
   Most of the time, the backend name and suffix are the same.  This variable
   lists the special cases where they are different."
+    :group 'org-autoexport
     :type '(choice (repeat
                     (cons (string :tag "Backend name")
                           (string :tag "Suffix")))))
@@ -587,6 +597,9 @@ Here's the function which puts it all together, and does the exporting:
   The backends are listed in the #+auto_export: directives.  If a backend
   or export function is unknown, a warning is written to the *Warnings* buffer.
 
+  If the variable `org-autoexport-export-in-background' is non-nil, export
+  is done in the background.
+
   Buffer restrictions are ignored when autoexporting."
     (interactive)
     (unless (derived-mode-p 'org-mode)
@@ -594,7 +607,8 @@ Here's the function which puts it all together, and does the exporting:
     (save-restriction
       (save-mark-and-excursion
         (widen)
-        (let (backend suffix path msg name func fmt)
+        (let (backend suffix path msg name func fmt background)
+          (setq background org-autoexport-export-in-background)
           (dolist (backend-info (org-autoexport-get-backend-info))
             (setq name (car (string-split backend-info)))
             (setq fmt (cadr (string-split backend-info)))
@@ -602,7 +616,7 @@ Here's the function which puts it all together, and does the exporting:
                    ;; Format specified: special-case export function.
                    (setq func (format "org-%s-export-to-%s" name fmt))
                    (if (intern-soft func)
-                       (funcall (intern func))
+                       (funcall (intern func) background)
                      (warn "No %s export function called '%s'" name func)))
                   (t
                    ;; No format specified: standard backend using
@@ -612,10 +626,12 @@ Here's the function which puts it all together, and does the exporting:
                    (setq path (concat (org-autoexport-get-filename) "." suffix))
                    (if (not backend)
                        (warn "No export backend for '%s'" name)
-                     (setq msg (format "Exporting %s to '%s'" name path))
-                     (message "%s..." msg)
-                     (org-export-to-file backend path nil)
-                     (message "%s...done" msg)))))))))
+                     (when (not background)
+                       (setq msg (format "Exporting %s to '%s'" name path))
+                       (message "%s..." msg))
+                     (org-export-to-file backend path background)
+                     (when (not background)
+                       (message "%s...done" msg))))))))))
 #+end_src
 
 Here's how to test it:
@@ -641,6 +657,20 @@ exporting.  The idea here is to have this turned on in ~org-mode-hook~.
 #+end_src
 
 And that's it.
+
+*** Other customisation
+
+Here's a custom variable to support exporting in the background,
+independently of other settings:
+
+#+name: export-background
+#+begin_src elisp :results silent
+  (defcustom org-autoexport-export-in-background org-export-in-background
+    "Non-nil means autoexport will run in background.
+  Initial value is the value of `org-export-in-background'."
+    :group 'org-autoexport
+    :type 'boolean)
+#+end_src
 
 * Epilogue                                                         :noexport:
 
