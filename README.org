@@ -7,6 +7,8 @@
 
 #+property: header-args+ :eval no-export :exports both :noweb yes :mkdirp yes
 
+#+columns: %ITEM %CUSTOM_ID
+
 #+auto_export: gfm
 #+auto_export: html
 
@@ -115,6 +117,17 @@ functions in this format by evaluating this elisp function:
 
 By default the exported filename is based on the org filename.  You can use
 the =EXPORT_FILE_NAME= file property to override this.
+
+** Background export
+   :PROPERTIES:
+   :CUSTOM_ID: background
+   :END:
+
+If the custom variable =org-autoexport-export-in-background= is non-nil,
+export is done in the background.  The initial value of this variable is
+taken from =org-export-in-background=, and so by default behaves the same
+way.  But you can set the autoexport version to a different value for
+independent behaviour.
 
 ** Suppressing export
    :PROPERTIES:
