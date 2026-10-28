@@ -57,7 +57,6 @@ repeat myself.
 
 * Usage
   :PROPERTIES:
-  :header-args+: :eval no
   :CUSTOM_ID: usage
   :END:
 
@@ -68,10 +67,10 @@ You can also invoke the export process interactively, via the
 ~org-autoexport-do-export()~ function.  For example, this declaration would
 export to markdown and HTML:
 
-#+begin_src org :eval no
+#+begin_example org
   ,#+auto_export: md
   ,#+auto_export: html
-#+end_src
+#+end_example
 
 ** Multi-format backends
    :PROPERTIES:
@@ -89,26 +88,26 @@ second argument on the =#+auto_export:= line.  The general form is
 =#+auto_export: BACKEND FORMAT=.  For example, to export to RTF using pandoc
 you would say:
 
-#+begin_src org :eval no
+#+begin_example org
   ,#+auto_export: pandoc rtf
-#+end_src
+#+end_example
 
 In this case, instead of the standard backend mechanism, auto-export will
 look for an elisp function called ~org-pandoc-export-to-rtf~.  Another
 example of this is if you want to export to PDF, since it can't be exported
 directly, but can be done via LaTeX using ~org-latex-export-to-pdf~:
 
-#+begin_src org :eval no
+#+begin_example org
   ,#+auto_export: latex pdf
-#+end_src
+#+end_example
 
 The general format of the function searched for is
 =org-BACKEND-export-to-FORMAT=, and you can find the complete list of export
 functions in this format by evaluating this elisp function:
 
-#+begin_src elisp :results silent
+#+begin_example elisp
   (apropos "org-.+-export-to-[-a-z]+$")
-#+end_src
+#+end_example
 
 ** Exported filename
    :PROPERTIES:
@@ -156,25 +155,24 @@ will need to load the [[https://github.com/larstvei/ox-gfm][ox-gfm]] package).
 
 * Installation
   :PROPERTIES:
-  :header-args+: :eval no
   :CUSTOM_ID: install
   :END:
 
 Simply require the package in your emacs init file and hook it into org
 mode:
 
-#+begin_src elisp :results silent
+#+begin_example elisp
   (require 'org-autoexport)
   (add-hook 'org-mode-hook 'org-autoexport-mode)
-#+end_src
+#+end_example
 
 Alternatively, you can install from MELPA via =use-package=:
 
-#+begin_src elisp :results silent
+#+begin_example elisp
   (use-package org-autoexport
     :defer t
     :hook (org-mode . org-autoexport-mode))
-#+end_src
+#+end_example
 
 Autoexport mode adds an =AutoExp= indicator to the mode line to show that
 it's active.  You can change or suppress that using the [[https://www.gnu.org/software/emacs/manual/html_node/use-package/Diminish.html][diminish]] option of
@@ -196,7 +194,7 @@ suggestions [[https://todo.sr.ht/~zondo/org-autoexport][here]], or you can email
 This package is licensed under the the [[https://opensource.org/license/bsd-2-clause][2-Clause BSD License]].
 
 #+name: license-text
-#+begin_src text :exports none :eval no :tangle COPYING
+#+begin_src text :exports none :eval no-export :tangle COPYING
   Copyright (c) <<this-year()>>, Glenn Hutchings
 
   Redistribution and use in source and binary forms, with or without
@@ -362,25 +360,22 @@ The tangled package file:
 #+end_src
 
 ** Testing
-   :PROPERTIES:
-   :header-args+: :eval no
-   :END:
 
 Doing the export directly:
 
-#+begin_src elisp
+#+begin_example elisp
   (org-autoexport-do-export)
-#+end_src
+#+end_example
 
 Toggling the minor mode:
 
-#+begin_src elisp
+#+begin_example elisp
   (org-autoexport-mode 'toggle)
-#+end_src
+#+end_example
 
 Some unit tests, in [[https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md][buttercup]] format:
 
-#+begin_src elisp :tangle test/org-autoexport-tests.el
+#+begin_src elisp :eval no-export :tangle test/org-autoexport-tests.el
   ;;; -*- lexical-binding: t; -*-
 
   (require 'buttercup)
