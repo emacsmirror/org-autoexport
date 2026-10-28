@@ -2,6 +2,7 @@
 - [Usage](#usage)
   - [Multi-format backends](#multiformat)
   - [Exported filename](#filename)
+  - [Background export](#background)
   - [Suppressing export](#suppressing)
   - [Errors](#errors)
 - [Installation](#install)
@@ -44,7 +45,7 @@ That way, I can have the auto-export control for a bunch of org files as part of
 
 The package defines a minor mode called `org-autoexport-mode`, which (if enabled) will try to export to other formats after saving the current org file. It will perform one export for each `#+auto_export:` option it finds. You can also invoke the export process interactively, via the `org-autoexport-do-export()` function. For example, this declaration would export to markdown and HTML:
 
-```org
+```
 #+auto_export: md
 #+auto_export: html
 ```
@@ -58,19 +59,19 @@ By default, export is done by finding the export backend from the file suffix, a
 
 To auto-export to these formats, you need to specify which format using a second argument on the `#+auto_export:` line. The general form is `#+auto_export: BACKEND FORMAT`. For example, to export to RTF using pandoc you would say:
 
-```org
+```
 #+auto_export: pandoc rtf
 ```
 
 In this case, instead of the standard backend mechanism, auto-export will look for an elisp function called `org-pandoc-export-to-rtf`. Another example of this is if you want to export to PDF, since it can't be exported directly, but can be done via LaTeX using `org-latex-export-to-pdf`:
 
-```org
+```
 #+auto_export: latex pdf
 ```
 
 The general format of the function searched for is `org-BACKEND-export-to-FORMAT`, and you can find the complete list of export functions in this format by evaluating this elisp function:
 
-```elisp
+```
 (apropos "org-.+-export-to-[-a-z]+$")
 ```
 
@@ -80,6 +81,13 @@ The general format of the function searched for is `org-BACKEND-export-to-FORMAT
 ## Exported filename
 
 By default the exported filename is based on the org filename. You can use the `EXPORT_FILE_NAME` file property to override this.
+
+
+<a id="background"></a>
+
+## Background export
+
+The custom variable `org-autoexport-export-in-background` controls whether the export is done asynchronously, in the background. It can be `nil` (no), `t` (yes) or `'inherit`, which means to follow the behaviour of `org-export-in-background`.
 
 
 <a id="suppressing"></a>
@@ -108,14 +116,14 @@ Auto-export will fail if the required packages and support tools (e.g., the requ
 
 Simply require the package in your emacs init file and hook it into org mode:
 
-```elisp
+```
 (require 'org-autoexport)
 (add-hook 'org-mode-hook 'org-autoexport-mode)
 ```
 
 Alternatively, you can install from MELPA via `use-package`:
 
-```elisp
+```
 (use-package org-autoexport
   :defer t
   :hook (org-mode . org-autoexport-mode))

@@ -3,7 +3,7 @@
 ;; Author: Glenn Hutchings <zondo42@gmail.com>
 ;; Maintainer: Glenn Hutchings <zondo42@gmail.com>
 ;; URL: https://git.sr.ht/~zondo/org-autoexport
-;; Version: 1.4
+;; Version: 1.5
 ;; Keywords: org, wp
 ;; Package-Requires: ((emacs "29.1") (org "9.6"))
 ;; 
@@ -55,12 +55,16 @@
 ;; 
 ;; Version 1.4 (4 Oct 2026):
 ;;    Add support for multi-format export
+;; 
+;; Version 1.5 (28 Oct 2026):
+;;    Add support for background export
 
 ;;; Code:
 
 (require 'org)
 (require 'ox)
 
+;; Customisation variables.
 (defgroup org-autoexport nil
   "Auto-exporting org files when saving."
   :group 'org)
@@ -72,10 +76,21 @@
 
 Most of the time, the backend name and suffix are the same.  This variable
 lists the special cases where they are different."
+  :group 'org-autoexport
   :type '(choice (repeat
                   (cons (string :tag "Backend name")
                         (string :tag "Suffix")))))
 
+(defcustom org-autoexport-export-in-background nil
+  "Whether to autoexport asynchronously, in background.
+This can be t (yes), nil (no) or 'inherit, in which case the behaviour
+follows the value of `org-export-in-background'."
+  :group 'org-autoexport
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Inherit" inherit)))
+
+;; Functions.
 (defun org-autoexport-get-backend-info ()
   "Get a list of auto-export backend information from the current file.
 
@@ -121,6 +136,9 @@ basename of the current buffer's filename."
 The backends are listed in the #+auto_export: directives.  If a backend
 or export function is unknown, a warning is written to the *Warnings* buffer.
 
+Export may be done in the background; this is controlled by the value of
+`org-autoexport-export-in-background'.
+
 Buffer restrictions are ignored when autoexporting."
   (interactive)
   (unless (derived-mode-p 'org-mode)
@@ -128,7 +146,12 @@ Buffer restrictions are ignored when autoexporting."
   (save-restriction
     (save-mark-and-excursion
       (widen)
-      (let (backend suffix path msg name func fmt)
+      (let (backend suffix path msg name func fmt background)
+        ;; Do we want background export?
+        (if (eq org-autoexport-export-in-background 'inherit)
+            (setq background org-export-in-background)
+          (setq background org-autoexport-export-in-background))
+        ;; Do export for each backend.
         (dolist (backend-info (org-autoexport-get-backend-info))
           (setq name (car (string-split backend-info)))
           (setq fmt (cadr (string-split backend-info)))
@@ -136,7 +159,7 @@ Buffer restrictions are ignored when autoexporting."
                  ;; Format specified: special-case export function.
                  (setq func (format "org-%s-export-to-%s" name fmt))
                  (if (intern-soft func)
-                     (funcall (intern func))
+                     (funcall (intern func) background)
                    (warn "No %s export function called '%s'" name func)))
                 (t
                  ;; No format specified: standard backend using
@@ -146,10 +169,12 @@ Buffer restrictions are ignored when autoexporting."
                  (setq path (concat (org-autoexport-get-filename) "." suffix))
                  (if (not backend)
                      (warn "No export backend for '%s'" name)
-                   (setq msg (format "Exporting %s to '%s'" name path))
-                   (message "%s..." msg)
-                   (org-export-to-file backend path nil)
-                   (message "%s...done" msg)))))))))
+                   (when (not background)
+                     (setq msg (format "Exporting %s to '%s'" name path))
+                     (message "%s..." msg))
+                   (org-export-to-file backend path background)
+                   (when (not background)
+                     (message "%s...done" msg))))))))))
 
 ;;;###autoload
 (define-minor-mode org-autoexport-mode
