@@ -123,11 +123,10 @@ the =EXPORT_FILE_NAME= file property to override this.
    :CUSTOM_ID: background
    :END:
 
-If the custom variable =org-autoexport-export-in-background= is non-nil,
-export is done in the background.  The initial value of this variable is
-taken from =org-export-in-background=, and so by default behaves the same
-way.  But you can set the autoexport version to a different value for
-independent behaviour.
+The custom variable =org-autoexport-export-in-background= controls whether
+the export is done asynchronously, in the background.  It can be =nil= (no),
+=t= (yes) or ='inherit=, which means to follow the behaviour of
+=org-export-in-background=.
 
 ** Suppressing export
    :PROPERTIES:
@@ -610,8 +609,8 @@ Here's the function which puts it all together, and does the exporting:
   The backends are listed in the #+auto_export: directives.  If a backend
   or export function is unknown, a warning is written to the *Warnings* buffer.
 
-  If the variable `org-autoexport-export-in-background' is non-nil, export
-  is done in the background.
+  Export may be done in the background; this is controlled by the value of
+  `org-autoexport-export-in-background'.
 
   Buffer restrictions are ignored when autoexporting."
     (interactive)
@@ -621,7 +620,11 @@ Here's the function which puts it all together, and does the exporting:
       (save-mark-and-excursion
         (widen)
         (let (backend suffix path msg name func fmt background)
-          (setq background org-autoexport-export-in-background)
+          ;; Do we want background export?
+          (if (eq org-autoexport-export-in-background 'inherit)
+              (setq background org-export-in-background)
+            (setq background org-autoexport-export-in-background))
+          ;; Do export for each backend.
           (dolist (backend-info (org-autoexport-get-backend-info))
             (setq name (car (string-split backend-info)))
             (setq fmt (cadr (string-split backend-info)))
@@ -678,11 +681,14 @@ independently of other settings:
 
 #+name: export-background
 #+begin_src elisp :results silent
-  (defcustom org-autoexport-export-in-background org-export-in-background
-    "Non-nil means autoexport will run in background.
-  Initial value is the value of `org-export-in-background'."
+  (defcustom org-autoexport-export-in-background nil
+    "Whether to autoexport asynchronously, in background.
+  This can be t (yes), nil (no) or 'inherit, in which case the behaviour
+  follows the value of `org-export-in-background'."
     :group 'org-autoexport
-    :type 'boolean)
+    :type '(choice (const :tag "No" nil)
+                   (const :tag "Yes" t)
+                   (const :tag "Inherit" inherit)))
 #+end_src
 
 * Epilogue                                                         :noexport:
